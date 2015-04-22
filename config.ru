@@ -20,6 +20,6 @@ use Rack::CommonLogger, logger
 use Europeana::Proxy::EdmIsShownBy
 
 app = Proc.new do |env|
-  [404, { 'Content-Type' => 'text/plain' }, ['404 Not Found']]
+  Europeana::Proxy::EdmIsShownBy.response_for_status_code(404)
 end
 run app

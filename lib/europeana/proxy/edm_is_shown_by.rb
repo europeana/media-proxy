@@ -6,10 +6,17 @@ require 'mime/types'
 
 module Europeana
   module Proxy
-    # @todo SCM in github
     # @todo stress test
     # @todo monitor memory usage/leakage
+    # @todo log actions
+    # @todo only respond to / proxy GET requests?
     class EdmIsShownBy < Rack::Proxy
+      class << self
+        def response_for_status_code(status_code)
+          [status_code, { 'Content-Type' => 'text/plain' }, [Rack::Utils::HTTP_STATUS_CODES[status_code]]]
+        end
+      end
+
       def initialize(app)
         @app = app
       end
@@ -25,17 +32,22 @@ module Europeana
       end
 
       def rewrite_response(triplet)
-        if (200..299).include?(triplet.first.to_i)
+        status_code = triplet.first.to_i
+        case status_code
+        when 200..299
           content_type = triplet[1]['content-type'].split('; ').first
           extension = MIME::Types[content_type].first.preferred_extension
           filename = @record_id.sub('/', '').gsub('/', '_') + '.' + extension
           triplet[1]['Content-Disposition'] = "attachment; filename=#{filename}"
+          # prevent duplicate headers on some text/html documents
+          triplet[1]['Content-Length'] = triplet[1]['content-length']
+          triplet
+        else
+          response_for_status_code(status_code)
         end
-        triplet
       end
 
       # @todo handle failures
-      # @todo what if there are multiple aggregations with edmIsShownBy values?
       def rewrite_env(env)
         @record_id = env['REQUEST_PATH']
         @edm = Europeana::API.record(@record_id)['object']
@@ -59,12 +71,20 @@ module Europeana
       # @todo limit # of redirects
       def perform_request(env)
         triplet = super
-        if (300..399).include?(triplet.first.to_i)
+        status_code = triplet.first.to_i
+        case status_code
+        when 300..399
           redirect = triplet[1]['location']
           perform_request(rewrite_env_for_url(env, redirect))
         else
           triplet
         end
+      rescue Errno::ETIMEDOUT
+        response_for_status_code(504) # 504 Gateway Timeout
+      end
+
+      def response_for_status_code(status_code)
+        self.class.response_for_status_code(status_code)
       end
     end
   end
