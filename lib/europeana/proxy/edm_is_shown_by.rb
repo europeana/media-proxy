@@ -34,6 +34,12 @@ module Europeana
         end
       rescue NoUrlError
         response_for_status_code(404)
+      rescue Europeana::API::Errors::ResponseError
+        response_for_status_code(503)
+      rescue Exception
+        # @todo raise in dev env?
+        # @todo log
+        response_for_status_code(500)
       end
 
       def proxy?(env)
