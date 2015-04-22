@@ -11,6 +11,8 @@ module Europeana
     # @todo log actions
     # @todo only respond to / proxy GET requests?
     class EdmIsShownBy < Rack::Proxy
+      class NoUrlError < StandardError; end
+
       class << self
         def response_for_status_code(status_code)
           [status_code, { 'Content-Type' => 'text/plain' }, [Rack::Utils::HTTP_STATUS_CODES[status_code]]]
@@ -24,6 +26,14 @@ module Europeana
       def call(env)
         # call super if we want to proxy, otherwise just handle regularly via call
         (proxy?(env) && super) || @app.call(env)
+      rescue Europeana::API::Errors::RequestError => e
+        if e.message.match(/^Invalid record identifier/)
+          response_for_status_code(404)
+        else
+          response_for_status_code(400)
+        end
+      rescue NoUrlError
+        response_for_status_code(404)
       end
 
       def proxy?(env)
@@ -52,11 +62,11 @@ module Europeana
         triplet
       end
 
-      # @todo handle failures
       def rewrite_env(env)
         @record_id = env['REQUEST_PATH']
         @edm = Europeana::API.record(@record_id)['object']
         edm_is_shown_by = @edm['aggregations'].collect { |a| a['edmIsShownBy'] }.first
+        fail NoUrlError if edm_is_shown_by.blank?
         rewrite_env_for_url(env, edm_is_shown_by)
       end
 
