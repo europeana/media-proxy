@@ -6,23 +6,23 @@ require 'europeana/proxy/version'
 Gem::Specification.new do |spec|
   spec.name          = 'europeana-proxy'
   spec.version       = Europeana::Proxy::VERSION
+  spec.license       = 'EUPL V.1.1'
   spec.authors       = ['Richard Doe']
   spec.email         = ['richard.doe@rwdit.net']
 
   spec.summary       = 'Rack proxy to download Europeana record edm:isShownBy targets'
   spec.homepage      = 'http://github.com/europeana/europeana-proxy-ruby'
 
-  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  spec.bindir        = 'exe'
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  spec.files         = Dir['lib/**/*.rb'] + Dir['config/*'] + Dir['spec/**/*']
+  spec.files         += ['config.ru', 'Gemfile', 'LICENSE.md', 'Procfile',
+                         'Rakefile', 'README.md']
   spec.require_paths = ['lib']
 
   spec.required_ruby_version = '>= 2.0.0'
 
-  spec.add_development_dependency 'europeana-api'
-  spec.add_development_dependency 'puma'
-  spec.add_development_dependency 'rack-proxy'
-  spec.add_development_dependency 'mime-types'
+  spec.add_dependency 'europeana-api', '~> 0.3.0'
+  spec.add_dependency 'rack-proxy', '>= 0.5.17'
+  spec.add_dependency 'mime-types', '~> 2.4.0'
 
   spec.add_development_dependency 'bundler', '~> 1.9'
   spec.add_development_dependency 'rake', '~> 10.0'
