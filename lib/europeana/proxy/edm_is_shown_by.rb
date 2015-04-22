@@ -35,16 +35,21 @@ module Europeana
         status_code = triplet.first.to_i
         case status_code
         when 200..299
-          content_type = triplet[1]['content-type'].split('; ').first
-          extension = MIME::Types[content_type].first.preferred_extension
-          filename = @record_id.sub('/', '').gsub('/', '_') + '.' + extension
-          triplet[1]['Content-Disposition'] = "attachment; filename=#{filename}"
-          # prevent duplicate headers on some text/html documents
-          triplet[1]['Content-Length'] = triplet[1]['content-length']
-          triplet
+          content_type = triplet[1]['content-type'].split(/; */).first
+          if content_type == 'text/html'
+            # don't download HTML; redirect to it
+            triplet = [301, { 'location' => @urls.last }, ['']]
+          else
+            extension = MIME::Types[content_type].first.preferred_extension
+            filename = @record_id.sub('/', '').gsub('/', '_') + '.' + extension
+            triplet[1]['Content-Disposition'] = "attachment; filename=#{filename}"
+            # prevent duplicate headers on some text/html documents
+            triplet[1]['Content-Length'] = triplet[1]['content-length']
+          end
         else
-          response_for_status_code(status_code)
+          triplet = response_for_status_code(status_code)
         end
+        triplet
       end
 
       # @todo handle failures
@@ -58,8 +63,12 @@ module Europeana
       protected
 
       def rewrite_env_for_url(env, url)
+        @urls ||= []
+        @urls << url
+        
         # app server may already be proxied; don't let Rack know
         env.reject! { |k, _v| k.match(/^HTTP_X_/) }
+        
         u = URI.parse(url)
         env['HTTP_HOST'] = u.host + ':' + u.port.to_s
         env['QUERY_STRING'] = u.query || ''
