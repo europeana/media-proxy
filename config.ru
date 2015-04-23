@@ -1,3 +1,5 @@
+# @todo use Sinatra?
+# @todo use any other stock Rack middlewares?
 if ['development', 'test'].include?(ENV['RACK_ENV'])
   require 'dotenv'
   Dotenv.load
@@ -22,4 +24,5 @@ use Europeana::Proxy::EdmIsShownBy
 app = Proc.new do |env|
   Europeana::Proxy::EdmIsShownBy.response_for_status_code(404)
 end
+
 run app
