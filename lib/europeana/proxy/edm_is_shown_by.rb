@@ -14,7 +14,8 @@ module Europeana
       class << self
         def response_for_status_code(status_code)
           [status_code, { 'Content-Type' => 'text/plain' },
-           [Rack::Utils::HTTP_STATUS_CODES[status_code]]]
+            [Rack::Utils::HTTP_STATUS_CODES[status_code]]
+          ]
         end
       end
 
@@ -22,37 +23,17 @@ module Europeana
 
       def initialize(app, opts = {})
         @logger = opts.fetch(:logger, Logger.new(STDOUT))
+        @logger.progname ||= 'Europeana::Proxy'
         @max_redirects = opts.fetch(:max_redirects, MAX_REDIRECTS)
         super(opts)
         @app = app
       end
 
       def call(env)
-        begin
+        rescue_call_errors do
           # call super if we want to proxy, otherwise just handle regularly via call
           (proxy?(env) && init && super) || @app.call(env)
-        rescue Exception => e
-          # log all errors, then handle them individually below
-          logger.error(e.message)
-          raise
         end
-      # @todo move error handling out of this class, into the Rack/Sinatra app
-      rescue Europeana::API::Errors::RequestError => e
-        if e.message.match(/^Invalid record identifier/)
-          response_for_status_code(404)
-        else
-          response_for_status_code(400)
-        end
-      rescue Errors::NoUrl
-        response_for_status_code(404)
-      rescue Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
-        Errors::TooManyRedirects
-        response_for_status_code(502) # Bad Gateway!
-      rescue Errno::ETIMEDOUT
-        response_for_status_code(504) # Gateway Timeout
-      rescue Exception => e
-        raise if ['development', 'test'].include?(ENV['RACK_ENV'])
-        response_for_status_code(500)
       end
 
       def init
@@ -117,12 +98,13 @@ module Europeana
         @urls << url
 
         # app server may already be proxied; don't let Rack know
-        env.reject! { |k, _v| k.match(/^HTTP_X_/) }
+        env.reject! { |k, _v| k.match(/^HTTP_X_/) } if @urls.size == 1
 
         u = URI.parse(url)
         fail Errors::BadUrl, url unless u.host.present?
 
-        env['HTTP_HOST'] = u.host + ':' + u.port.to_s
+        env['HTTP_HOST'] = u.host
+        env['HTTP_X_FORWARDED_PORT'] = u.port.to_s
         env['REQUEST_PATH'] = env['PATH_INFO'] = u.path || ''
         env['QUERY_STRING'] = u.query || ''
         env['HTTPS'] = 'on' if u.scheme == 'https'
@@ -143,6 +125,8 @@ module Europeana
       def perform_request(env)
         triplet = super
         status_code = triplet.first.to_i
+        logger.info("HTTP status code: #{status_code}")
+
         case status_code
         when 300..399
           perform_redirect(env, triplet[1]['location'])
@@ -158,6 +142,33 @@ module Europeana
         up = URI.parse(@urls[-1])
         u.path = File.expand_path(u.path, File.dirname(up.path))
         up.merge(u).to_s
+      end
+
+      # @todo move error handling out of this class, into the Rack/Sinatra app
+      def rescue_call_errors
+        begin
+          yield
+        rescue Exception => e
+          # log all errors, then handle them individually below
+          logger.error(e.message)
+          raise
+        end
+      rescue Europeana::API::Errors::RequestError => e
+        if e.message.match(/^Invalid record identifier/)
+          response_for_status_code(404)
+        else
+          response_for_status_code(400)
+        end
+      rescue Errors::NoUrl
+        response_for_status_code(404)
+      rescue Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
+        Errors::TooManyRedirects, Errno::ENETUNREACH
+        response_for_status_code(502) # Bad Gateway!
+      rescue Errno::ETIMEDOUT
+        response_for_status_code(504) # Gateway Timeout
+      rescue Exception => e
+        raise if ['development', 'test'].include?(ENV['RACK_ENV'])
+        response_for_status_code(500)
       end
     end
   end

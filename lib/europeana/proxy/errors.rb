@@ -3,7 +3,7 @@ module Europeana
     module Errors
       class BadUrl < StandardError
         def message
-          "Bad URL: \"#{super}\""
+          "Bad URL \"#{super}\""
         end
       end
 
@@ -15,13 +15,13 @@ module Europeana
 
       class TooManyRedirects < StandardError
         def message
-          "Too many redirects; max is: #{super}"
+          "Too many redirects; max is #{super}"
         end
       end
 
       class UnknownMediaType < StandardError
         def message
-          "Unknown media type: \"#{super}\""
+          "Unknown media type \"#{super}\""
         end
       end
     end
