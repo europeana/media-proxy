@@ -30,27 +30,79 @@ For full details, see [LICENSE.md](LICENSE.md).
 
 ## Usage
 
-The proxy application will respond to requests for URL paths corresponding to
-the two-part IDs of Europeana records, with the format "/provider-code/item-id",
-e.g. http://www.example.com/abcdef/123456. Any other requests will result in a
-404 error response.
+### Overview
 
-The [Europeana REST API](http://labs.europeana.eu/api/introduction/) will be
-queried for the record ID in the request path, and the edm:isShownBy URL for
-the record retrieved.
+1. Proxy receives HTTP request with Europeana record ID as URL path
+2. Proxy requests record metadata from Europeana REST API
+3. Proxy gets edm:isShownBy URL from record metadata
+4. Proxy issues an HTTP request for edm:isShownBy URL
+5. Proxy follows redirects in response from remote provider
+6. If final target is HTML, user agent is redirected to it
+7. If final target is not HTML, proxy constructs a file name based on record ID
+  and streams it to the user agent as a file download
+8. If errors are encountered at any stage of the request handling, proxy
+  returns a relevant HTTP status code with plain text message
 
-The proxy application will request from the provider the target of the
-edm:isShownBy URL, resolve redirects in the response, and finally stream the
-content to the user agent (e.g. web browser) as a download, with file name
-derived from the record ID, e.g. "abcdef_123456.jpeg".
+### Valid URL paths
 
-Where the target is an HTML page, it will not be downloaded, but the user agent
-will instead be redirected to it.
+The only URL paths accepted by the proxy application are Europeana record IDs.
+For instance, the record with ID "/11614/_HERBARIUMSPECIMEN_RBGK_UK_K000885766"
+has the proxied download URL:
+http://www.example.com/11614/_HERBARIUMSPECIMEN_RBGK_UK_K000885766 (where
+www.example.com is the hostname of your deployed application)
 
+HTTP requests to the proxy application for any other URL path result in a 404
+Not Found error.
+
+### Redirects
+
+The proxy application follows redirects in the responses from remote providers,
+requesting the target of the redirect until it receives a response that is not
+a redirect, up to a maximum of 3 redirects.
+
+Relative paths in redirect targets are detected and handled.
+
+### Downloaded file names
+
+The media streamed to the user agent as a downloaded file will have a file name
+based on the record ID, with extension for the media type reported by the remote
+provider. For instance, the record with ID
+"/92023/BibliographicResource_2000068846208" has a JPEG image at its
+edm:isShownBy URL, which is downloaded as a file named
+"92023_BibliographicResource_2000068846208.jpeg".
+
+### HTML targets
+
+If the target of the edm:isShownBy URL has an HTML media type, i.e. "text/html",
+then it will not be sent to the user agent as a download but instead a redirect
+to the HTML page will be sent to the user.
+
+An HTML page for edm:isShownBy will likely have the actual media object exposed
+through it somehow, and so the user is unlikely to want to download that
+containing HTML page.
+
+## Error handling
+
+The following table lists the various error conditions handled by the proxy
+application and the HTTP status code it responds with in each case. Error
+responses are always plain text with the standard HTTP description of the
+status, e.g. "Not Found" or "Internal Server Error".
+
+Error condition | HTTP status code
+----------------|-----------------
+Europeana REST API responds that the proxy application's request (for record metadata) is invalid | 400
+URL path is not a Europeana record ID | 404
+No Europeana record exists for the given record ID | 404
+Europeana record has no edm:isShownBy data | 404
+Remote provider responds with invalid or unknown media type in content-type header | 502
+The maximum number of redirects is exceeded in attempting to resolve the edm:isShownBy target | 502
+Remote provider is unreachable | 502
+Europeana REST API returns an invalid response | 502
+Request to remote provider times out | 504
+Any other error preventing completion of the request | 500
 
 ## TODO
 
 * Make the proxy usable as Rack middleware, and document installation as a gem
 * Document in this README:
-  * error handling
   * logger output
