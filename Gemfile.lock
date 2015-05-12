@@ -3,8 +3,8 @@ PATH
   specs:
     europeana-proxy (0.1.0)
       europeana-api (~> 0.3.1)
-      mime-types (~> 2.4.0)
-      rack-proxy (>= 0.5.17)
+      mime-types (~> 2.4)
+      rack-proxy (~> 0.5)
 
 GEM
   remote: https://rubygems.org/
@@ -21,7 +21,7 @@ GEM
       multi_json (~> 1.0)
     i18n (0.7.0)
     json (1.8.2)
-    mime-types (2.4.3)
+    mime-types (2.5)
     minitest (5.6.1)
     multi_json (1.11.0)
     puma (2.11.2)
