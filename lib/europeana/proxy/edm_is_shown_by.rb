@@ -153,6 +153,14 @@ module Europeana
           logger.error(e.message)
           raise
         end
+      rescue ArgumentError => e
+        if e.message.match(/^Invalid Europeana record ID/)
+          response_for_status_code(404)
+        elsif ['development', 'test'].include?(ENV['RACK_ENV'])
+          raise
+        else
+          response_for_status_code(500)
+        end
       rescue Europeana::API::Errors::RequestError => e
         if e.message.match(/^Invalid record identifier/)
           response_for_status_code(404)
@@ -166,7 +174,7 @@ module Europeana
         response_for_status_code(502) # Bad Gateway!
       rescue Errno::ETIMEDOUT
         response_for_status_code(504) # Gateway Timeout
-      rescue Exception => e
+      rescue StandardError => e
         raise if ['development', 'test'].include?(ENV['RACK_ENV'])
         response_for_status_code(500)
       end
