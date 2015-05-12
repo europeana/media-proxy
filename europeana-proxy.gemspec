@@ -13,9 +13,9 @@ Gem::Specification.new do |spec|
   spec.summary       = 'Rack proxy to download Europeana record edm:isShownBy targets'
   spec.homepage      = 'http://github.com/europeana/europeana-proxy-ruby'
 
-  spec.files         = Dir['lib/**/*.rb'] + Dir['config/*'] + Dir['spec/**/*']
-  spec.files         += ['config.ru', 'Gemfile', 'LICENSE.md', 'Procfile',
-                         'Rakefile', 'README.md']
+  spec.files         = Dir['lib/**/*.rb'] + Dir['spec/**/*']
+  spec.files         += ['config.ru', 'Gemfile', 'LICENSE.md', 'Rakefile',
+                         'README.md']
   spec.require_paths = ['lib']
 
   spec.required_ruby_version = '>= 2.0.0'
