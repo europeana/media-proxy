@@ -21,8 +21,8 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 2.0.0'
 
   spec.add_dependency 'europeana-api', '~> 0.3.1'
-  spec.add_dependency 'rack-proxy', '>= 0.5.17'
-  spec.add_dependency 'mime-types', '~> 2.4.0'
+  spec.add_dependency 'rack-proxy', '~> 0.5'
+  spec.add_dependency 'mime-types', '~> 2.4'
 
   spec.add_development_dependency 'bundler', '~> 1.9'
   spec.add_development_dependency 'rake', '~> 10.0'
