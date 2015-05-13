@@ -61,27 +61,37 @@ module Europeana
 
       def rewrite_response(triplet)
         status_code = triplet.first.to_i
-        case status_code
-        when 200..299
-          content_type = triplet[1]['content-type']
-          content_type = content_type.first if content_type.is_a?(Array)
-          content_type = content_type.split(/; */).first
 
-          if content_type == 'text/html'
-            # don't download HTML; redirect to it
-            triplet = [301, { 'location' => @urls.last }, ['']]
-          else
-            media_type = MIME::Types[content_type].first
-            fail Errors::UnknownMediaType, content_type if media_type.nil?
-            extension = media_type.preferred_extension
-            filename = @record_id.sub('/', '').gsub('/', '_') + '.' + extension
-            triplet[1]['Content-Disposition'] = "attachment; filename=#{filename}"
-            # prevent duplicate headers on some text/html documents
-            triplet[1]['Content-Length'] = triplet[1]['content-length']
-          end
-        else
-          triplet = response_for_status_code(status_code)
+        unless (200..299).include?(status_code)
+          return response_for_status_code(status_code)
         end
+
+        content_type = triplet[1]['content-type']
+        content_type = content_type.first if content_type.is_a?(Array)
+        content_type = content_type.split(/; */).first
+
+        case content_type
+        when 'text/html'
+          # don't download HTML; redirect to it
+          return [301, { 'location' => @urls.last }, ['']]
+        when 'application/octet-stream'
+          # "arbitrary binary data" [RFC 2046]; look to extension in URL
+          extension = File.extname(URI.parse(@urls.last).path)
+          extension.sub!(/^\./, '').downcase!
+          media_type = MIME::Types.type_for(extension).first
+          unless media_type.nil?
+            triplet[1]['content-type'] = media_type.content_type
+          end
+        end
+
+        media_type ||= MIME::Types[content_type].first
+        fail Errors::UnknownMediaType, content_type if media_type.nil?
+        extension ||= media_type.preferred_extension
+        filename = @record_id.sub('/', '').gsub('/', '_') + '.' + extension
+
+        triplet[1]['Content-Disposition'] = "attachment; filename=#{filename}"
+        # prevent duplicate headers on some text/html documents
+        triplet[1]['Content-Length'] = triplet[1]['content-length']
         triplet
       end
 
