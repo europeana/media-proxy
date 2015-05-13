@@ -71,7 +71,7 @@ provider. For instance, the record with ID
 edm:isShownBy URL, which is downloaded as a file named
 "92023_BibliographicResource_2000068846208.jpeg".
 
-### HTML targets
+### text/html content-type
 
 If the target of the edm:isShownBy URL has an HTML media type, i.e. "text/html",
 then it will not be sent to the user agent as a download but instead a redirect
@@ -80,6 +80,13 @@ to the HTML page will be sent to the user.
 An HTML page for edm:isShownBy will likely have the actual media object exposed
 through it somehow, and so the user is unlikely to want to download that
 containing HTML page.
+
+### application/octet-stream content-type
+
+If the target of the edm:isShownBy URL has an arbitrary binary data media type,
+i.e. "application/octet-stream", then the proxy application will use the URL's
+file extension (if it has one) for the downloaded file name, and set the
+content-type header to a more specific one based on that file name extension.
 
 ## Error handling
 
@@ -103,6 +110,8 @@ Any other error preventing completion of the request | 500
 
 ## TODO
 
-* Make the proxy usable as Rack middleware, and document installation as a gem
+* Make the proxy:
+  * usable as Rack middleware, and document installation as a gem
+  * a Sinatra app
 * Document in this README:
   * logger output
