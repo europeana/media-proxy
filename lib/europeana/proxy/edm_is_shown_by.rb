@@ -1,4 +1,5 @@
 require 'active_support/core_ext/hash' # @todo fix this in europeana-api
+require 'active_support/core_ext/object/blank'
 require 'europeana/api'
 require 'mime/types'
 require 'rack/proxy'
@@ -164,13 +165,15 @@ module Europeana
       # @return [Array] Rewritten Rack response triplet
       def application_octet_stream_response(triplet)
         extension = File.extname(URI.parse(@urls.last).path)
-        extension.sub!(/^\./, '').downcase!
+        extension.sub!(/^\./, '')
+        extension.downcase!
         media_type = MIME::Types.type_for(extension).first
         unless media_type.nil?
           triplet[1]['content-type'] = media_type.content_type
         end
         download_response(triplet, 'application/octet-stream',
-                          extension: extension, media_type: media_type)
+                          extension: extension.blank? ? nil : extension,
+                          media_type: media_type.blank? ? nil : media_type)
       end
 
       ##
