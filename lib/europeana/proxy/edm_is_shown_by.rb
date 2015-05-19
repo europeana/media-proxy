@@ -1,4 +1,3 @@
-require 'active_support/core_ext/hash' # @todo fix this in europeana-api
 require 'active_support/core_ext/object/blank'
 require 'europeana/api'
 require 'mime/types'
