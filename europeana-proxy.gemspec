@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activesupport', '~> 4.2.3'
   spec.add_dependency 'europeana-api', '~> 0.3.3'
   spec.add_dependency 'rack', '~> 1.6.4'
+  spec.add_dependency 'rack-cors', '~> 0.4'
   spec.add_dependency 'rack-proxy', '~> 0.5'
   spec.add_dependency 'mime-types', '~> 2.4'
 

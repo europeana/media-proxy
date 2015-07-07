@@ -20,6 +20,17 @@ Europeana::API.url = ENV['EUROPEANA_API_URL'] if ENV['EUROPEANA_API_URL']
 
 logger = Logger.new(STDOUT)
 use Rack::CommonLogger, logger
+
+if ENV['CORS_ORIGINS']
+  require 'rack/cors'
+  use Rack::Cors do
+    allow do
+      origins ENV['CORS_ORIGINS'].split(' ')
+      resource '/*', :headers => :any, :methods => [:get, :head, :options]
+    end
+  end
+end
+
 use Europeana::Proxy::EdmIsShownBy
 
 app = Proc.new do |env|

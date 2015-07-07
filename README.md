@@ -23,15 +23,20 @@ For full details, see [LICENSE.md](LICENSE.md).
 
 1. Get a Europeana API key from http://labs.europeana.eu/api/
 2. Set your API key in the environment variable `EUROPEANA_API_KEY`.
-
-  In a development environment, environment variables can be set in the file
-  [.env](https://github.com/bkeepers/dotenv)
-3. Run with Puma:
-
+3. (Optional) Set permitted CORS origins in the environment variable
+  `CORS_ORIGINS`. Examples:
+  * `CORS_ORIGINS=*`
+  * `CORS_ORIGINS=http://localhost:3000 http://www.example.com`
+4. Run with Puma:
   `bundle exec puma -C config/puma.rb`
 
-  In a development environment, Puma can be run with foreman to pick up .env
-  environment variables:
+### Development environments
+
+* **Environment variables** can be set in the file
+[.env](https://github.com/bkeepers/dotenv)
+
+* **Puma** can be run with [foreman](https://github.com/ddollar/foreman) to
+detect .env environment variables:
 
   `foreman start`
 

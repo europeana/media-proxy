@@ -6,6 +6,7 @@ PATH
       europeana-api (~> 0.3.3)
       mime-types (~> 2.4)
       rack (~> 1.6.4)
+      rack-cors (~> 0.4)
       rack-proxy (~> 0.5)
 
 GEM
@@ -50,6 +51,7 @@ GEM
     puma (2.11.3)
       rack (>= 1.1, < 2.0)
     rack (1.6.4)
+    rack-cors (0.4.0)
     rack-proxy (0.5.17)
       rack
     rainbow (2.0.0)
