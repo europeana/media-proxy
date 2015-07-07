@@ -42,7 +42,7 @@ module Europeana
       #   follow
       def initialize(app, opts = {})
         @logger = opts.fetch(:logger, Logger.new(STDOUT))
-        @logger.progname ||= 'Europeana::Proxy'
+        @logger.progname ||= '[Europeana::Proxy]'
         @max_redirects = opts.fetch(:max_redirects, MAX_REDIRECTS)
         super(opts)
         @app = app
