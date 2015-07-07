@@ -3,7 +3,7 @@ PATH
   specs:
     europeana-proxy (0.1.0)
       activesupport (~> 4.2.3)
-      europeana-api (~> 0.3.2)
+      europeana-api (~> 0.3.3)
       mime-types (~> 2.4)
       rack (~> 1.6.4)
       rack-proxy (~> 0.5)
@@ -31,7 +31,7 @@ GEM
     domain_name (0.5.24)
       unf (>= 0.0.5, < 1.0.0)
     dotenv (2.0.2)
-    europeana-api (0.3.2)
+    europeana-api (0.3.3)
       activesupport (>= 3.0)
       multi_json (~> 1.0)
     foreman (0.78.0)
