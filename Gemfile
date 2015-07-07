@@ -6,6 +6,7 @@ ruby '2.2.2'
 gemspec
 
 gem 'puma', '>= 2.0.0'
+gem 'coveralls', require: false
 
 group :development, :test do
   gem 'dotenv'
