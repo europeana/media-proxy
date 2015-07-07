@@ -1,5 +1,7 @@
 # Europeana::Proxy::EdmIsShownBy
 
+[![Build Status](https://travis-ci.org/europeana/europeana-proxy-ruby.svg?branch=master)](https://travis-ci.org/europeana/europeana-proxy-ruby) [![Coverage Status](https://coveralls.io/repos/europeana/europeana-proxy-ruby/badge.svg?branch=master&service=github)](https://coveralls.io/github/europeana/europeana-proxy-ruby?branch=master) [![security](https://hakiri.io/github/europeana/europeana-proxy-ruby/master.svg)](https://hakiri.io/github/europeana/europeana-proxy-ruby/master)
+
 [Rack](http://rack.github.io/) proxy to download the edm:isShownBy
 targets of Europeana records.
 
@@ -21,12 +23,17 @@ For full details, see [LICENSE.md](LICENSE.md).
 
 1. Get a Europeana API key from http://labs.europeana.eu/api/
 2. Set your API key in the environment variable `EUROPEANA_API_KEY`.
-  
+
   In a development environment, environment variables can be set in the file
   [.env](https://github.com/bkeepers/dotenv)
 3. Run with Puma:
-  
-    `bundle exec puma`
+
+  `bundle exec puma -C config/puma.rb`
+
+  In a development environment, Puma can be run with foreman to pick up .env
+  environment variables:
+
+  `foreman start`
 
 ## Usage
 
