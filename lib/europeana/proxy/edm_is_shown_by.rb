@@ -242,7 +242,7 @@ module Europeana
         logger.info("HTTP status code: #{status_code}")
 
         case status_code
-        when 300..399
+        when 300..303, 305..399
           perform_redirect(env, triplet[1]['location'])
         else
           triplet
