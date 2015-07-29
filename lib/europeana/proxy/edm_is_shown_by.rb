@@ -250,11 +250,14 @@ module Europeana
       end
 
       def absolute_redirect_url(url_or_path)
-        return url_or_path unless url_or_path[0] == '.'
-        # relative redirect: keep previous host; resolve path from previous url
         u = URI.parse(url_or_path)
+        return url_or_path if u.host.present?
+
+        # relative redirect: keep previous host; resolve path from previous url
         up = URI.parse(@urls[-1])
-        u.path = File.expand_path(u.path, File.dirname(up.path))
+        unless u.path[0] == '/'
+          u.path = File.expand_path(u.path, File.dirname(up.path))
+        end
         up.merge(u).to_s
       end
 
