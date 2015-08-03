@@ -10,7 +10,7 @@ gem 'coveralls', require: false
 
 group :development, :test do
   gem 'dotenv'
-  gem 'rubocop'
+  gem 'rubocop', '0.29.1', require: false
 end
 
 group :development do
