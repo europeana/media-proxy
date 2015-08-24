@@ -57,6 +57,7 @@ module Europeana
         rescue_call_errors do
           if proxy?(env)
             reset
+            @params = Rack::Request.new(env).params
             super
           else
             @app.call(env)
@@ -195,10 +196,14 @@ module Europeana
         extension = opts[:extension] || media_type.preferred_extension
         filename = @record_id.sub('/', '').gsub('/', '_') + '.' + extension
 
-        triplet[1]['Content-Disposition'] = "attachment; filename=#{filename}"
+        triplet[1]['Content-Disposition'] = "#{content_disposition}; filename=#{filename}"
         # prevent duplicate headers on some text/html documents
         triplet[1]['Content-Length'] = triplet[1]['content-length']
         triplet
+      end
+
+      def content_disposition
+        @params['disposition'] == 'inline' ? 'inline' : 'attachment'
       end
 
       def rewrite_env_for_url(env, url)
