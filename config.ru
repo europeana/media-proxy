@@ -26,7 +26,8 @@ if ENV['CORS_ORIGINS']
   use Rack::Cors do
     allow do
       origins ENV['CORS_ORIGINS'].split(' ')
-      resource '/*', :headers => :any, :methods => [:get, :head, :options]
+      resource '/*', headers: :any, methods: [:get, :head, :options],
+                     expose: ['Content-Length']
     end
   end
 end
