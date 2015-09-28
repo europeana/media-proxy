@@ -107,6 +107,9 @@ module Europeana
         rewrite_env_for_url(env, requested_view)
       end
 
+      ##
+      # @param record [Europeana::API::Record]
+      # @return [String] edm:isShownBy value for the given record
       def record_edm_is_shown_by(record)
         @record_edm_is_shown_by ||= begin
           record['aggregations'].map do |aggregation|
@@ -115,9 +118,12 @@ module Europeana
         end
       end
 
+      ##
+      # @param record [Europeana::API::Record]
+      # @return [Array<String>] hasView values for the given record
       def record_has_view(record)
         @record_has_view ||= begin
-          has_view = record['aggregations'].map do |aggregation|
+          record['aggregations'].map do |aggregation|
             aggregation['hasView']
           end.flatten
         end
