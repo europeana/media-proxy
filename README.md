@@ -1,9 +1,9 @@
-# Europeana::Proxy::EdmIsShownBy
+# Europeana::Proxy::Media
 
 [![Build Status](https://travis-ci.org/europeana/europeana-proxy-ruby.svg?branch=master)](https://travis-ci.org/europeana/europeana-proxy-ruby) [![Coverage Status](https://coveralls.io/repos/europeana/europeana-proxy-ruby/badge.svg?branch=master&service=github)](https://coveralls.io/github/europeana/europeana-proxy-ruby?branch=master) [![security](https://hakiri.io/github/europeana/europeana-proxy-ruby/master.svg)](https://hakiri.io/github/europeana/europeana-proxy-ruby/master)
 
-[Rack](http://rack.github.io/) proxy to download the edm:isShownBy
-targets of Europeana records.
+[Rack](http://rack.github.io/) proxy to download the media resources
+associated with Europeana records.
 
 ## License
 
@@ -57,11 +57,14 @@ detect .env environment variables:
 
 ### Valid URL paths
 
-The only URL paths accepted by the proxy application are Europeana record IDs.
-For instance, the record with ID "/11614/_HERBARIUMSPECIMEN_RBGK_UK_K000885766"
-has the proxied download URL:
-http://www.example.com/11614/_HERBARIUMSPECIMEN_RBGK_UK_K000885766 (where
-www.example.com is the hostname of your deployed application)
+The only URL paths accepted by the proxy application are Europeana record IDs
+with a `view` parameter containing the URL of the required resource.
+
+For instance, the record with ID "/09102/_GNM_693983" has the proxied download URLs:
+* http://www.example.com/09102/_GNM_693983?view=http://www.mimo-db.eu/media/GNM/IMAGE/MIR1097_1279787057222_2.jpg
+* http://www.example.com/09102/_GNM_693983?view=http://www.mimo-db.eu/media/GNM/VIDEO/MIR1097_Daempfer_Stein.avi
+* etc.
+(where www.example.com is the hostname of your deployed application)
 
 HTTP requests to the proxy application for any other URL path result in a 404
 Not Found error.

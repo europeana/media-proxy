@@ -32,10 +32,10 @@ if ENV['CORS_ORIGINS']
   end
 end
 
-use Europeana::Proxy::EdmIsShownBy
+use Europeana::Proxy::Media
 
 app = Proc.new do |env|
-  Europeana::Proxy::EdmIsShownBy.response_for_status_code(404)
+  Europeana::Proxy::Media.response_for_status_code(404)
 end
 
 run app

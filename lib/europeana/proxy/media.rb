@@ -7,10 +7,10 @@ require 'uri'
 module Europeana
   module Proxy
     ##
-    # Rack middleware to proxy Europeana record edm:IsShownBy targets
+    # Rack middleware to proxy Europeana record media resources
     #
     # @todo only respond to / proxy GET requests?
-    class EdmIsShownBy < Rack::Proxy
+    class Media < Rack::Proxy
       # Default maximum number of redirects to follow.
       # Can be overriden in {opts} passed to {#initialize}.
       MAX_REDIRECTS = 3
@@ -96,14 +96,31 @@ module Europeana
       def rewrite_env(env)
         @record_id = env['REQUEST_PATH']
         edm = Europeana::API.record(@record_id)['object']
-        edm_is_shown_by = edm['aggregations'].collect do |aggregation|
-          aggregation['edmIsShownBy']
-        end.first
-        if edm_is_shown_by.blank?
-          fail Errors::NoUrl,
-               "No edm:isShownBy URL for record \"#{@record_id}\""
+
+        record_views = ([record_edm_is_shown_by(edm)] + record_has_view(edm)).compact.flatten
+        requested_view = @params['view'].present? ? @params['view'] : record_edm_is_shown_by(edm)
+
+        unless record_views.include?(requested_view)
+          fail Errors::UnknownView,
+               "Unknown view URL for record \"#{@record_id}\": \"#{@requested_view}\""
         end
-        rewrite_env_for_url(env, edm_is_shown_by)
+        rewrite_env_for_url(env, requested_view)
+      end
+
+      def record_edm_is_shown_by(record)
+        @record_edm_is_shown_by ||= begin
+          record['aggregations'].map do |aggregation|
+            aggregation['edmIsShownBy']
+          end.first
+        end
+      end
+
+      def record_has_view(record)
+        @record_has_view ||= begin
+          has_view = record['aggregations'].map do |aggregation|
+            aggregation['hasView']
+          end.flatten
+        end
       end
 
       ##
@@ -289,7 +306,7 @@ module Europeana
         else
           response_for_status_code(400)
         end
-      rescue Errors::NoUrl
+      rescue Errors::UnknownView
         response_for_status_code(404)
       rescue Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
              Errors::TooManyRedirects, Errno::ENETUNREACH
