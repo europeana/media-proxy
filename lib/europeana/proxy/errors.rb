@@ -2,7 +2,7 @@ module Europeana
   module Proxy
     module Errors
       ##
-      # URL to proxy is invalid
+      # URL to media resource is invalid, i.e. not a URL
       class BadUrl < StandardError
         def message
           "Bad URL \"#{super}\""
@@ -10,10 +10,10 @@ module Europeana
       end
 
       ##
-      # No URL to proxy
-      class NoUrl < StandardError
+      # URL is not known for the requested record
+      class UnknownView < StandardError
         def message
-          super || 'No URL'
+          super || 'Unknown view URL'
         end
       end
 
