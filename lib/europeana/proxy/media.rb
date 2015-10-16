@@ -102,7 +102,7 @@ module Europeana
 
         unless record_views.include?(requested_view)
           fail Errors::UnknownView,
-               "Unknown view URL for record \"#{@record_id}\": \"#{@requested_view}\""
+               "Unknown view URL for record \"#{@record_id}\": \"#{requested_view}\""
         end
         rewrite_env_for_url(env, requested_view)
       end
