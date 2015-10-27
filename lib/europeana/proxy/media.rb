@@ -74,6 +74,8 @@ module Europeana
         @urls = []
         @record_id = nil
         @redirects = 0
+        @record_edm_is_shown_by = nil
+        @record_has_view = nil
         nil
       end
 
@@ -96,10 +98,8 @@ module Europeana
       def rewrite_env(env)
         @record_id = env['REQUEST_PATH']
         edm = Europeana::API.record(@record_id)['object']
-
         record_views = ([record_edm_is_shown_by(edm)] + record_has_view(edm)).compact.flatten
         requested_view = @params['view'].present? ? @params['view'] : record_edm_is_shown_by(edm)
-
         unless record_views.include?(requested_view)
           fail Errors::UnknownView,
                "Unknown view URL for record \"#{@record_id}\": \"#{requested_view}\""
