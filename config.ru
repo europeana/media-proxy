@@ -35,7 +35,8 @@ end
 use Europeana::Proxy::Media
 
 app = Proc.new do |env|
-  Europeana::Proxy::Media.response_for_status_code(404)
+  status = (env['REQUEST_PATH'] == '/') ? 200 : 404
+  Europeana::Proxy::Media.response_for_status_code(status)
 end
 
 run app
