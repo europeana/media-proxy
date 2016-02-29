@@ -1,3 +1,10 @@
+GIT
+  remote: git://github.com/europeana/rack-cors.git
+  revision: f6df31c05d941ef2a26907041b7326f29bb9c81e
+  branch: europeana-proxy
+  specs:
+    rack-cors (0.4.0)
+
 PATH
   remote: .
   specs:
@@ -51,7 +58,6 @@ GEM
     powerpack (0.1.1)
     puma (2.15.3)
     rack (1.6.4)
-    rack-cors (0.4.0)
     rack-proxy (0.5.17)
       rack
     rainbow (2.1.0)
@@ -106,6 +112,7 @@ DEPENDENCIES
   europeana-proxy!
   foreman
   puma (>= 2.0.0)
+  rack-cors (~> 0.4.0)!
   rake (~> 10.0)
   rspec (~> 3.2)
   rubocop (= 0.29.1)
