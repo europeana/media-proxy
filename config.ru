@@ -1,3 +1,5 @@
+$LOAD_PATH.unshift(File.expand_path('../lib', __FILE__))
+
 # @todo use Sinatra?
 # @todo use any other stock Rack middlewares?
 if ['development', 'test'].include?(ENV['RACK_ENV'])

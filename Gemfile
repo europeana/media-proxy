@@ -4,14 +4,18 @@ source 'https://rubygems.org'
 
 ruby '2.2.2'
 
-# Specify your gem's dependencies in europeana-proxy.gemspec
-gemspec
-
+gem 'activesupport', '~> 4.2.3'
+gem 'europeana-api', '~> 0.3.3'
+gem 'mime-types', '~> 2.4'
 gem 'puma', '>= 2.0.0'
+gem 'rack', '~> 1.6.4'
+gem 'rack-cors', '~> 0.4.0', github: 'europeana/rack-cors', branch: 'europeana-proxy'
+gem 'rack-proxy', '~> 0.5'
+gem 'rake', '~> 10.0'
+
+# @todo group these
 gem 'coveralls', require: false
 gem 'dotenv'
-gem 'rubocop', '0.29.1', require: false
 gem 'foreman'
-gem 'rack-cors', '~> 0.4.0', github: 'europeana/rack-cors', branch: 'europeana-proxy'
-gem 'rake', '~> 10.0'
 gem 'rspec', '~> 3.2'
+gem 'rubocop', '0.35.1', require: false # only update when Hound does
