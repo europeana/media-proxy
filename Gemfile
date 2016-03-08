@@ -13,3 +13,5 @@ gem 'dotenv'
 gem 'rubocop', '0.29.1', require: false
 gem 'foreman'
 gem 'rack-cors', '~> 0.4.0', github: 'europeana/rack-cors', branch: 'europeana-proxy'
+gem 'rake', '~> 10.0'
+gem 'rspec', '~> 3.2'
