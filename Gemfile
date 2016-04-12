@@ -2,8 +2,6 @@ ENV['RACK_ENV'] ||= 'development'
 
 source 'https://rubygems.org'
 
-ruby '2.2.2'
-
 gem 'activesupport', '~> 4.2.3'
 gem 'europeana-api', '~> 0.3.3'
 gem 'mime-types', '~> 2.4'
