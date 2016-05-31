@@ -245,7 +245,8 @@ module Europeana
       end
 
       def rewrite_env_for_uri(env, uri)
-        env['HTTP_HOST'] = "#{uri.host}:#{uri.port}"
+        env['HTTP_HOST'] = uri.host
+        env['HTTP_HOST'] << ":#{uri.port}" unless uri.port == 80
         env['HTTP_X_FORWARDED_PORT'] = uri.port.to_s
         env['REQUEST_PATH'] = env['PATH_INFO'] = uri.path || ''
         env['QUERY_STRING'] = uri.query || ''
