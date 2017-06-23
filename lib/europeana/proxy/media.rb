@@ -44,6 +44,8 @@ module Europeana
         @logger = opts.fetch(:logger, Logger.new(STDOUT))
         @logger.progname ||= '[Europeana::Proxy]'
         @max_redirects = opts.fetch(:max_redirects, MAX_REDIRECTS)
+        # Disable streaming (for full http logging)
+        # super(opts.merge(streaming: false))
         super(opts)
         @app = app
       end
@@ -246,11 +248,17 @@ module Europeana
 
       def rewrite_env_for_uri(env, uri)
         env['HTTP_HOST'] = uri.host
-        env['HTTP_HOST'] << ":#{uri.port}" unless uri.port == 80
+        env['HTTP_HOST'] << ":#{uri.port}" unless uri.port == (uri.scheme == 'https' ? 443 : 80)
         env['HTTP_X_FORWARDED_PORT'] = uri.port.to_s
-        env['REQUEST_PATH'] = env['PATH_INFO'] = uri.path || ''
+        env['REQUEST_PATH'] = env['PATH_INFO'] = uri.path.blank? ? '/' : uri.path
+        env.delete('HTTP_COOKIE')
         env['QUERY_STRING'] = uri.query || ''
-        env['HTTPS'] = 'on' if uri.scheme == 'https'
+        if uri.scheme == 'https'
+          env['HTTPS'] = 'on'
+        else
+          env.delete('HTTPS')
+        end
+
         env
       end
 
