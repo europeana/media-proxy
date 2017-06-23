@@ -10,6 +10,7 @@ end
 require 'europeana/api'
 require 'europeana/proxy'
 require 'logger'
+require 'http_logger'
 
 # @todo move into initializer / middleware / etc
 unless ENV.key?('EUROPEANA_API_KEY')
@@ -22,6 +23,8 @@ Europeana::API.url = ENV['EUROPEANA_API_URL'] if ENV['EUROPEANA_API_URL']
 
 logger = Logger.new(STDOUT)
 use Rack::CommonLogger, logger
+HttpLogger.logger = logger
+HttpLogger.log_headers = true
 
 if ENV['CORS_ORIGINS']
   require 'rack/cors'

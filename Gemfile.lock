@@ -34,6 +34,7 @@ GEM
       thor (~> 0.19.1)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
+    http_logger (0.5.1)
     i18n (0.7.0)
     json (1.8.3)
     mime-types (2.99)
@@ -100,6 +101,7 @@ DEPENDENCIES
   dotenv
   europeana-api (~> 0.3.3)
   foreman
+  http_logger
   mime-types (~> 2.4)
   puma (>= 2.0.0)
   rack (~> 1.6.4)
@@ -110,4 +112,4 @@ DEPENDENCIES
   rubocop (= 0.39.0)
 
 BUNDLED WITH
-   1.13.1
+   1.13.7
