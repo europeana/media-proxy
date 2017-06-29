@@ -10,6 +10,7 @@ end
 require 'europeana/api'
 require 'europeana/proxy'
 require 'logger'
+require 'http_logger'
 
 # @todo move into initializer / middleware / etc
 unless ENV.key?('EUROPEANA_API_KEY')
@@ -22,6 +23,12 @@ Europeana::API.url = ENV['EUROPEANA_API_URL'] if ENV['EUROPEANA_API_URL']
 
 logger = Logger.new(STDOUT)
 use Rack::CommonLogger, logger
+
+# NB: HttpLogger will only log full requests & responses if streaming is disabled
+# by env var DISABLE_STREAMING=1 
+HttpLogger.logger = logger
+HttpLogger.log_headers = true
+HttpLogger.log_response_body = false
 
 if ENV['CORS_ORIGINS']
   require 'rack/cors'

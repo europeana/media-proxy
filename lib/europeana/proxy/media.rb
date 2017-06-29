@@ -44,7 +44,10 @@ module Europeana
         @logger = opts.fetch(:logger, Logger.new(STDOUT))
         @logger.progname ||= '[Europeana::Proxy]'
         @max_redirects = opts.fetch(:max_redirects, MAX_REDIRECTS)
-        super(opts)
+
+        streaming = (ENV['DISABLE_STREAMING'] != '1')
+
+        super(opts.merge(streaming: streaming))
         @app = app
       end
 
@@ -54,11 +57,11 @@ module Europeana
       # @param env [Hash] request env
       # @return [Array] Rack response triplet
       def call(env)
+        GC.start
         rescue_call_errors do
           if proxy?(env)
-            reset
-            @params = Rack::Request.new(env).params
-            super
+            init_app_env_store(env)
+            rewrite_response_with_env(perform_request(rewrite_env(env)), env)
           else
             @app.call(env)
           end
@@ -66,17 +69,13 @@ module Europeana
       end
 
       ##
-      # Reset the proxy handler before a new request
-      #
-      # @return [NilClass]
-      def reset
-        GC.start
-        @urls = []
-        @record_id = nil
-        @redirects = 0
-        @record_edm_is_shown_by = nil
-        @record_has_view = nil
-        nil
+      # Init the app's data store in the env before a new request
+      def init_app_env_store(env)
+        env['app.params'] = Rack::Request.new(env).params
+        env['app.urls'] = []
+        env['app.record_id'] = nil
+        env['app.redirects'] = 0
+        env
       end
 
       ##
@@ -96,13 +95,17 @@ module Europeana
       # @param env [Hash] request env
       # @return [Hash] rewritten request env
       def rewrite_env(env)
-        @record_id = env['REQUEST_PATH']
-        edm = Europeana::API.record(@record_id)['object']
-        record_views = ([record_edm_is_shown_by(edm)] + record_has_view(edm)).compact.flatten
-        requested_view = @params['view'].present? ? @params['view'] : record_edm_is_shown_by(edm)
+        env['app.record_id'] = env['REQUEST_PATH']
+        edm = Europeana::API.record(env['app.record_id'])['object']
+
+        edm_is_shown_by = record_edm_is_shown_by(edm)
+        has_view = record_has_view(edm)
+
+        record_views = ([edm_is_shown_by] + has_view).compact.flatten
+        requested_view = env['app.params']['view'].present? ? env['app.params']['view'] : edm_is_shown_by
         unless record_views.include?(requested_view)
           fail Errors::UnknownView,
-               "Unknown view URL for record \"#{@record_id}\": \"#{requested_view}\""
+               "Unknown view URL for record \"#{env['app.record_id']}\": \"#{requested_view}\""
         end
         rewrite_env_for_url(env, requested_view)
       end
@@ -111,22 +114,18 @@ module Europeana
       # @param record [Europeana::API::Record]
       # @return [String] edm:isShownBy value for the given record
       def record_edm_is_shown_by(record)
-        @record_edm_is_shown_by ||= begin
-          record['aggregations'].map do |aggregation|
-            aggregation['edmIsShownBy']
-          end.first
-        end
+        record['aggregations'].map do |aggregation|
+          aggregation['edmIsShownBy']
+        end.first
       end
 
       ##
       # @param record [Europeana::API::Record]
       # @return [Array<String>] hasView values for the given record
       def record_has_view(record)
-        @record_has_view ||= begin
-          record['aggregations'].map do |aggregation|
-            aggregation['hasView']
-          end.flatten
-        end
+        record['aggregations'].map do |aggregation|
+          aggregation['hasView']
+        end.flatten
       end
 
       ##
@@ -137,11 +136,12 @@ module Europeana
       # {#response_for_status_code} for a plain text response.
       #
       # @param triplet [Array] Rack response triplet
+      # @param env Request env
       # @return [Array] Rewritten Rack response triplet
-      def rewrite_response(triplet)
+      def rewrite_response_with_env(triplet, env)
         status_code = triplet.first.to_i
         if (200..299).include?(status_code)
-          rewrite_success_response(triplet)
+          rewrite_success_response(triplet, env)
         else
           response_for_status_code(status_code)
         end
@@ -152,22 +152,26 @@ module Europeana
         self.class.response_for_status_code(status_code)
       end
 
+      def rewrite_response(triplet)
+        fail StandardError, "Use ##{rewrite_response_with_env}, not ##{rewrite_response}"
+      end
+
       protected
 
       ##
       # Rewrite a successful response
       #
       # (see #rewrite_response)
-      def rewrite_success_response(triplet)
+      def rewrite_success_response(triplet, env)
         content_type = content_type_from_header(triplet[1]['content-type'])
         case content_type
         when 'text/html'
           # don't download HTML; redirect to it
-          return [301, { 'location' => @urls.last }, ['']]
+          return [301, { 'location' => env['app.urls'].last }, ['']]
         when 'application/octet-stream'
-          application_octet_stream_response(triplet)
+          application_octet_stream_response(triplet, env)
         else
-          download_response(triplet, content_type)
+          download_response(triplet, content_type, env)
         end
       end
 
@@ -186,15 +190,15 @@ module Europeana
       #
       # @param triplet [Array] Rack response triplet
       # @return [Array] Rewritten Rack response triplet
-      def application_octet_stream_response(triplet)
-        extension = File.extname(URI.parse(@urls.last).path)
+      def application_octet_stream_response(triplet, env)
+        extension = File.extname(URI.parse(env['app.urls'].last).path)
         extension.sub!(/^\./, '')
         extension.downcase!
         media_type = MIME::Types.type_for(extension).first
         unless media_type.nil?
           triplet[1]['content-type'] = media_type.content_type
         end
-        download_response(triplet, 'application/octet-stream',
+        download_response(triplet, 'application/octet-stream', env,
                           extension: extension.blank? ? nil : extension,
                           media_type: media_type.blank? ? nil : media_type)
       end
@@ -212,31 +216,31 @@ module Europeana
       # @return [Array] Rewritten Rack response triplet
       # @raise [Errors::UnknownMediaType] if the content_type is not known by
       #   {MIME::Types}, e.g. "image/jpg"
-      def download_response(triplet, content_type, opts = {})
+      def download_response(triplet, content_type, env, opts = {})
         media_type = opts[:media_type] || MIME::Types[content_type].first
         fail Errors::UnknownMediaType, content_type if media_type.nil?
 
         extension = opts[:extension] || media_type.preferred_extension
-        filename = @record_id.sub('/', '').gsub('/', '_') + '.' + extension
+        filename = env['app.record_id'].sub('/', '').gsub('/', '_') + '.' + extension
 
-        triplet[1]['Content-Disposition'] = "#{content_disposition}; filename=#{filename}"
+        triplet[1]['Content-Disposition'] = "#{content_disposition(env)}; filename=#{filename}"
         # prevent duplicate headers on some text/html documents
         triplet[1]['Content-Length'] = triplet[1]['content-length']
         triplet
       end
 
-      def content_disposition
-        @params['disposition'] == 'inline' ? 'inline' : 'attachment'
+      def content_disposition(env)
+        env['app.params']['disposition'] == 'inline' ? 'inline' : 'attachment'
       end
 
       def rewrite_env_for_url(env, url)
         logger.info "URL: #{url}"
 
         # Keep a stack of URLs requested
-        @urls << url
+        env['app.urls'] << url
 
         # app server may already be proxied; don't let Rack know
-        env.reject! { |k, _v| k.match(/^HTTP_X_/) } if @urls.size == 1
+        env.reject! { |k, _v| k.match(/^HTTP_X_/) } if env['app.urls'].size == 1
 
         uri = URI.parse(url)
         fail Errors::BadUrl, url unless uri.host.present?
@@ -246,17 +250,23 @@ module Europeana
 
       def rewrite_env_for_uri(env, uri)
         env['HTTP_HOST'] = uri.host
-        env['HTTP_HOST'] << ":#{uri.port}" unless uri.port == 80
+        env['HTTP_HOST'] << ":#{uri.port}" unless uri.port == (uri.scheme == 'https' ? 443 : 80)
         env['HTTP_X_FORWARDED_PORT'] = uri.port.to_s
-        env['REQUEST_PATH'] = env['PATH_INFO'] = uri.path || ''
+        env['REQUEST_PATH'] = env['PATH_INFO'] = uri.path.blank? ? '/' : uri.path
+        env.delete('HTTP_COOKIE')
         env['QUERY_STRING'] = uri.query || ''
-        env['HTTPS'] = 'on' if uri.scheme == 'https'
+        if uri.scheme == 'https'
+          env['HTTPS'] = 'on'
+        else
+          env.delete('HTTPS')
+        end
+
         env
       end
 
       def perform_redirect(env, url)
-        @redirects += 1
-        if @redirects > @max_redirects
+        env['app.redirects'] += 1
+        if env['app.redirects'] > @max_redirects
           fail Errors::TooManyRedirects, @max_redirects
         end
 
@@ -283,7 +293,7 @@ module Europeana
         return url_or_path if u.host.present?
 
         # relative redirect: keep previous host; resolve path from previous url
-        up = URI.parse(@urls[-1])
+        up = URI.parse(env['app.urls'][-1])
         unless u.path[0] == '/'
           u.path = File.expand_path(u.path, File.dirname(up.path))
         end

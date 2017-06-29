@@ -16,4 +16,5 @@ gem 'coveralls', require: false
 gem 'dotenv'
 gem 'foreman'
 gem 'rspec', '~> 3.2'
-gem 'rubocop', '0.35.1', require: false # only update when Hound does
+gem 'rubocop', '0.39.0', require: false # only update when Hound does
+gem 'http_logger'
