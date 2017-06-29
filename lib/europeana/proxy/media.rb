@@ -44,9 +44,9 @@ module Europeana
         @logger = opts.fetch(:logger, Logger.new(STDOUT))
         @logger.progname ||= '[Europeana::Proxy]'
         @max_redirects = opts.fetch(:max_redirects, MAX_REDIRECTS)
-        # Disable streaming (for full http logging)
-        # super(opts.merge(streaming: false))
-        super(opts)
+        @streaming = (ENV['DISABLE_STREAMING'] != '1')
+
+        super(opts.merge(streaming: @streaming))
         @app = app
       end
 
