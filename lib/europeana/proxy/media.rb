@@ -221,7 +221,8 @@ module Europeana
         fail Errors::UnknownMediaType, content_type if media_type.nil?
 
         extension = opts[:extension] || media_type.preferred_extension
-        filename = env['app.record_id'].sub('/', '').gsub('/', '_') + '.' + extension
+        filename = env['app.record_id'].sub('/', '').gsub('/', '_')
+        filename = filename + '.' + extension unless extension.nil?
 
         triplet[1]['Content-Disposition'] = "#{content_disposition(env)}; filename=#{filename}"
         # prevent duplicate headers on some text/html documents
