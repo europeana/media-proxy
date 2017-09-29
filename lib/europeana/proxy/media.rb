@@ -96,7 +96,11 @@ module Europeana
       # @return [Hash] rewritten request env
       def rewrite_env(env)
         env['app.record_id'] = env['REQUEST_PATH']
-        edm = Europeana::API.record(env['app.record_id'])['object']
+        env['app.permitted_api_urls'] = ENV['ALLOWED_API_URLS'].split(',').map(&:strip) if ENV['ALLOWED_API_URLS']
+        if env['app.params']['api_url'] && env['app.permitted_api_urls'].include?(env['app.params']['api_url'])
+          Europeana::API.url = env['app.params']['api_url']
+        end
+        edm = Europeana::API.record.fetch(id: env['app.record_id'])['object']
 
         edm_is_shown_by = record_edm_is_shown_by(edm)
         has_view = record_has_view(edm)

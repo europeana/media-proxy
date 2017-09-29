@@ -3,7 +3,7 @@ ENV['RACK_ENV'] ||= 'development'
 source 'https://rubygems.org'
 
 gem 'activesupport', '~> 4.2.3'
-gem 'europeana-api', '~> 0.3.3'
+gem 'europeana-api', '~> 1.0.0'
 gem 'mime-types', '~> 2.4'
 gem 'puma', '>= 2.0.0'
 gem 'rack', '~> 1.6.4'
