@@ -44,6 +44,7 @@ module Europeana
         @logger = opts.fetch(:logger, Logger.new(STDOUT))
         @logger.progname ||= '[Europeana::Proxy]'
         @max_redirects = opts.fetch(:max_redirects, MAX_REDIRECTS)
+        @permitted_api_urls = ENV['PERMITTED_API_URLS'].present? ? ENV['PERMITTED_API_URLS'].split(',').map(&:strip) : []
 
         streaming = (ENV['DISABLE_STREAMING'] != '1')
 
@@ -96,10 +97,12 @@ module Europeana
       # @return [Hash] rewritten request env
       def rewrite_env(env)
         env['app.record_id'] = env['REQUEST_PATH']
-        env['app.permitted_api_urls'] = ENV['ALLOWED_API_URLS'].split(',').map(&:strip) if ENV['ALLOWED_API_URLS']
-        if env['app.params']['api_url'] && env['app.permitted_api_urls'].include?(env['app.params']['api_url'])
+
+        if env['app.params']['api_url']
+          fail Errors::AccessDenied, 'Requested API url is invalid' unless @permitted_api_urls.include?(env['app.params']['api_url'])
           Europeana::API.url = env['app.params']['api_url']
         end
+
         edm = Europeana::API.record.fetch(id: env['app.record_id'])['object']
 
         edm_is_shown_by = record_edm_is_shown_by(edm)
@@ -328,6 +331,8 @@ module Europeana
         else
           response_for_status_code(400)
         end
+      rescue Errors::AccessDenied
+        response_for_status_code(403)
       rescue Errors::UnknownView
         response_for_status_code(404)
       rescue Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
