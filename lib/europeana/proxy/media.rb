@@ -76,7 +76,6 @@ module Europeana
         env['app.urls'] = []
         env['app.record_id'] = nil
         env['app.redirects'] = 0
-        env['app.api_url'] = nil
         env
       end
 
@@ -101,10 +100,9 @@ module Europeana
 
         if env['app.params']['api_url']
           fail Errors::AccessDenied, 'Requested API url is invalid' unless @permitted_api_urls.include?(env['app.params']['api_url'])
-          env['app.api_url'] = env['app.params']['api_url']
         end
 
-        edm = Europeana::API.record.fetch(id: env['app.record_id'], api_url: env['app.api_url'])['object']
+        edm = Europeana::API.record.fetch(id: env['app.record_id'], api_url: env['app.params']['api_url'])['object']
 
         edm_is_shown_by = record_edm_is_shown_by(edm)
         has_view = record_has_view(edm)
