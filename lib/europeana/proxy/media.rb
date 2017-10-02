@@ -45,6 +45,7 @@ module Europeana
         @logger.progname ||= '[Europeana::Proxy]'
         @max_redirects = opts.fetch(:max_redirects, MAX_REDIRECTS)
         @permitted_api_urls = ENV['PERMITTED_API_URLS'].present? ? ENV['PERMITTED_API_URLS'].split(',').map(&:strip) : []
+        @permitted_api_urls << Europeana::API.url
 
         streaming = (ENV['DISABLE_STREAMING'] != '1')
 
