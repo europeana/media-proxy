@@ -329,9 +329,7 @@ module Europeana
         response_for_status_code(400)
       rescue Errors::AccessDenied
         response_for_status_code(403)
-      rescue Europeana::API::Errors::ResourceNotFoundError
-        response_for_status_code(404)
-      rescue Errors::UnknownView
+      rescue Europeana::API::Errors::ResourceNotFoundError, Errors::UnknownView
         response_for_status_code(404)
       rescue Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
              Errors::TooManyRedirects, Errno::ENETUNREACH
