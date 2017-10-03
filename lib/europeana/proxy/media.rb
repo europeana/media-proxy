@@ -325,14 +325,12 @@ module Europeana
         else
           response_for_status_code(500)
         end
-      rescue Europeana::API::Errors::RequestError => e
-        if e.message.match(/^Invalid record identifier/)
-          response_for_status_code(404)
-        else
-          response_for_status_code(400)
-        end
+      rescue Europeana::API::Errors::RequestError
+        response_for_status_code(400)
       rescue Errors::AccessDenied
         response_for_status_code(403)
+      rescue Europeana::API::Errors::ResourceNotFoundError
+        response_for_status_code(404)
       rescue Errors::UnknownView
         response_for_status_code(404)
       rescue Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
