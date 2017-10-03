@@ -27,7 +27,12 @@ For full details, see [LICENSE.md](LICENSE.md).
   `CORS_ORIGINS`. Examples:
   * `CORS_ORIGINS=*`
   * `CORS_ORIGINS=http://localhost:3000 http://www.example.com`
-4. Run with Puma:
+4. (Optional) Set permitted API endpoints in the environment variable
+ `PERMITTED_API_URLS`.
+  Comma separated, will always automatically include `Europeana::API.url`. Examples:
+  * `PERMITTED_API_URLS=http://test-api.example.org/api`
+  * `PERMITTED_API_URLS=http://test-api.example.org/api,https://test-api.example.org/api,http://localhost:8080/api`
+5. Run with Puma:
   `bundle exec puma -C config/puma.rb`
 
 ### Development environments
@@ -60,9 +65,14 @@ detect .env environment variables:
 The only URL paths accepted by the proxy application are Europeana record IDs
 with a `view` parameter containing the URL of the required resource.
 
+Optionally the `api_url` paramater may be supplied. If this is present, the aplication will query the specified API
+endpoint. Non permitted API urls will result in a 403 Forbidden response. By default the `Europeana::API.url` will
+always be permitted.
+
 For instance, the record with ID "/09102/_GNM_693983" has the proxied download URLs:
 * http://www.example.com/09102/_GNM_693983?view=http://www.mimo-db.eu/media/GNM/IMAGE/MIR1097_1279787057222_2.jpg
 * http://www.example.com/09102/_GNM_693983?view=http://www.mimo-db.eu/media/GNM/VIDEO/MIR1097_Daempfer_Stein.avi
+* http://www.example.com/09102/_GNM_693983?view=http://www.mimo-db.eu/media/GNM/VIDEO/MIR1097_Daempfer_Stein.avi&api_url=https://www.europeana.eu/api
 * etc.
 (where www.example.com is the hostname of your deployed application)
 
@@ -113,6 +123,7 @@ status, e.g. "Not Found" or "Internal Server Error".
 Error condition | HTTP status code
 ----------------|-----------------
 Europeana REST API responds that the proxy application's request (for record metadata) is invalid | 400
+The API endpoint is not permitted | 403
 URL path is not a Europeana record ID | 404
 No Europeana record exists for the given record ID | 404
 Europeana record has no edm:isShownBy data | 404

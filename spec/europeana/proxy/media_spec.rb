@@ -56,4 +56,17 @@ describe Europeana::Proxy::Media do
     let(:content_type) { 'image/jpg' }
     it 'responds with 502 Bad Gateway'
   end
+
+  context 'when an api_url is supplied in the params' do
+    let(:api_url) { 'http://test-api.eanadev.org/api' }
+    context 'when the alternate api_url is NOT configured in permmitted_api_urls' do
+      let(:permitted_api_urls) { ['http://test-api.eanadev.org/api'] }
+      it 'uses the supplied url as an API endpoint'
+    end
+
+    context 'when the alternate api_url is NOT configured in permmitted_api_urls' do
+      let(:permitted_api_urls) { ['https://acceptance-api.eanadev.org/api'] }
+      it 'responds with 403 Forbidden'
+    end
+  end
 end
