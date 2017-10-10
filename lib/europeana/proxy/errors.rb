@@ -32,6 +32,14 @@ module Europeana
           "Unknown media type \"#{super}\""
         end
       end
+
+      ##
+      # Access denied
+      class AccessDenied < StandardError
+        def message
+          "Access denied \"#{super}\""
+        end
+      end
     end
   end
 end

@@ -18,7 +18,7 @@ unless ENV.key?('EUROPEANA_API_KEY')
   exit 1
 end
 
-Europeana::API.api_key = ENV['EUROPEANA_API_KEY']
+Europeana::API.key = ENV['EUROPEANA_API_KEY']
 Europeana::API.url = ENV['EUROPEANA_API_URL'] if ENV['EUROPEANA_API_URL']
 
 logger = Logger.new(STDOUT)

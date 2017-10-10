@@ -44,6 +44,8 @@ module Europeana
         @logger = opts.fetch(:logger, Logger.new(STDOUT))
         @logger.progname ||= '[Europeana::Proxy]'
         @max_redirects = opts.fetch(:max_redirects, MAX_REDIRECTS)
+        @permitted_api_urls = ENV['PERMITTED_API_URLS'].present? ? ENV['PERMITTED_API_URLS'].split(',').map(&:strip) : []
+        @permitted_api_urls << Europeana::API.url
 
         streaming = (ENV['DISABLE_STREAMING'] != '1')
 
@@ -96,7 +98,12 @@ module Europeana
       # @return [Hash] rewritten request env
       def rewrite_env(env)
         env['app.record_id'] = env['REQUEST_PATH']
-        edm = Europeana::API.record(env['app.record_id'])['object']
+
+        if env['app.params']['api_url']
+          fail Errors::AccessDenied, 'Requested API url is invalid' unless @permitted_api_urls.include?(env['app.params']['api_url'])
+        end
+
+        edm = Europeana::API.record.fetch(id: env['app.record_id'], api_url: env['app.params']['api_url'])['object']
 
         edm_is_shown_by = record_edm_is_shown_by(edm)
         has_view = record_has_view(edm)
@@ -168,8 +175,8 @@ module Europeana
         when 'text/html'
           # don't download HTML; redirect to it
           return [301, { 'location' => env['app.urls'].last }, ['']]
-        when 'application/octet-stream'
-          application_octet_stream_response(triplet, env)
+        when 'application/octet-stream', 'binary/octet-stream'
+          download_octet_stream_response(triplet, env)
         else
           download_response(triplet, content_type, env)
         end
@@ -190,7 +197,7 @@ module Europeana
       #
       # @param triplet [Array] Rack response triplet
       # @return [Array] Rewritten Rack response triplet
-      def application_octet_stream_response(triplet, env)
+      def download_octet_stream_response(triplet, env)
         extension = File.extname(URI.parse(env['app.urls'].last).path)
         extension.sub!(/^\./, '')
         extension.downcase!
@@ -318,13 +325,11 @@ module Europeana
         else
           response_for_status_code(500)
         end
-      rescue Europeana::API::Errors::RequestError => e
-        if e.message.match(/^Invalid record identifier/)
-          response_for_status_code(404)
-        else
-          response_for_status_code(400)
-        end
-      rescue Errors::UnknownView
+      rescue Europeana::API::Errors::RequestError
+        response_for_status_code(400)
+      rescue Errors::AccessDenied
+        response_for_status_code(403)
+      rescue Europeana::API::Errors::ResourceNotFoundError, Errors::UnknownView
         response_for_status_code(404)
       rescue Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
              Errors::TooManyRedirects, Errno::ENETUNREACH
