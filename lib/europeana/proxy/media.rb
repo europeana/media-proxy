@@ -175,8 +175,8 @@ module Europeana
         when 'text/html'
           # don't download HTML; redirect to it
           return [301, { 'location' => env['app.urls'].last }, ['']]
-        when 'application/octet-stream'
-          application_octet_stream_response(triplet, env)
+        when 'application/octet-stream', 'binary/octet-stream'
+          download_octet_stream_response(triplet, env)
         else
           download_response(triplet, content_type, env)
         end
@@ -197,7 +197,7 @@ module Europeana
       #
       # @param triplet [Array] Rack response triplet
       # @return [Array] Rewritten Rack response triplet
-      def application_octet_stream_response(triplet, env)
+      def download_octet_stream_response(triplet, env)
         extension = File.extname(URI.parse(env['app.urls'].last).path)
         extension.sub!(/^\./, '')
         extension.downcase!
