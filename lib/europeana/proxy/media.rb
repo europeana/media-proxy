@@ -103,36 +103,9 @@ module Europeana
           fail Errors::AccessDenied, 'Requested API url is invalid' unless @permitted_api_urls.include?(env['app.params']['api_url'])
         end
 
-        edm = Europeana::API.record.fetch(id: env['app.record_id'], api_url: env['app.params']['api_url'])['object']
-
-        edm_is_shown_by = record_edm_is_shown_by(edm)
-        has_view = record_has_view(edm)
-
-        record_views = ([edm_is_shown_by] + has_view).compact.flatten
-        requested_view = env['app.params']['view'].present? ? env['app.params']['view'] : edm_is_shown_by
-        unless record_views.include?(requested_view)
-          fail Errors::UnknownView,
-               "Unknown view URL for record \"#{env['app.record_id']}\": \"#{requested_view}\""
-        end
+        search_response = api_search_response(env)
+        requested_view = view_url_to_proxy(env, search_response)
         rewrite_env_for_url(env, requested_view)
-      end
-
-      ##
-      # @param record [Europeana::API::Record]
-      # @return [String] edm:isShownBy value for the given record
-      def record_edm_is_shown_by(record)
-        record['aggregations'].map do |aggregation|
-          aggregation['edmIsShownBy']
-        end.first
-      end
-
-      ##
-      # @param record [Europeana::API::Record]
-      # @return [Array<String>] hasView values for the given record
-      def record_has_view(record)
-        record['aggregations'].map do |aggregation|
-          aggregation['hasView']
-        end.flatten
       end
 
       ##
@@ -164,6 +137,48 @@ module Europeana
       end
 
       protected
+
+      def api_search_response(env)
+        search_params = { query: api_search_query(env), profile: 'rich', api_url: env['app.params']['api_url'] }
+        search_response = Europeana::API.record.search(search_params)
+
+        if search_response['totalResults'].zero?
+          unknown_view_msg = if env['app.params']['view'].present?
+                               %(Unknown view URL for record "#{env['app.record_id']}": "#{env['app.params']['view']}")
+                             else
+                               %(Unknown record "#{env['app.record_id']}")
+                             end
+
+          fail Errors::UnknownView, unknown_view_msg
+        end
+
+        search_response
+      end
+
+      def view_url_to_proxy(env, search_response)
+        requested_view = if env['app.params']['view'].present?
+                           env['app.params']['view']
+                         else
+                           [search_response['items'].first['edmIsShownBy']].flatten.first
+                         end
+
+        if requested_view.blank?
+          fail Errors::UnknownView, %(No view for record "#{env['app.record_id']}")
+        end
+
+        requested_view
+      end
+
+      # Constructs an API search query parameter for view validation
+      def api_search_query(env)
+        search_query = %(europeana_id:"#{env['app.record_id']}")
+
+        if env['app.params']['view'].present?
+          search_query = search_query + %( AND (provider_aggregation_edm_isShownBy:"#{env['app.params']['view']}" OR provider_aggregation_edm_hasView:"#{env['app.params']['view']}"))
+        end
+
+        search_query
+      end
 
       ##
       # Rewrite a successful response
