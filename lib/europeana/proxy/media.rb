@@ -294,7 +294,7 @@ module Europeana
         end
 
         url = url.first if url.is_a?(Array)
-        url = absolute_redirect_url(url)
+        url = absolute_redirect_url(env, url)
         perform_request(rewrite_env_for_url(env, url))
       end
 
@@ -311,7 +311,7 @@ module Europeana
         end
       end
 
-      def absolute_redirect_url(url_or_path)
+      def absolute_redirect_url(env, url_or_path)
         u = URI.parse(url_or_path)
         return url_or_path if u.host.present?
 
