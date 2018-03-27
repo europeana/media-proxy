@@ -200,7 +200,12 @@ module Europeana
       # @param header [String,Array<String>] content-type header
       # @return [String] just the (first) media type part of the header
       def content_type_from_header(header)
-        [header].flatten.first.split(/; */).first
+        first_content_type = [header].flatten.first
+        if first_content_type.nil?
+          'application/octet-stream'
+        else
+          first_content_type.split(/; */).first
+        end
       end
 
       ##
