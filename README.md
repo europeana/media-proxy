@@ -12,7 +12,7 @@ associated with Europeana records.
 
 ## Configuration
 
-1. Get a Europeana API key from http://labs.europeana.eu/api/
+1. Get a Europeana API key from https://pro.europeana.eu/get-api
 2. Set your API key in the environment variable `EUROPEANA_API_KEY`.
 3. (Optional) Set permitted CORS origins in the environment variable
   `CORS_ORIGINS`. Examples:
