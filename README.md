@@ -5,19 +5,10 @@
 [Rack](http://rack.github.io/) proxy to download the media resources
 associated with Europeana records.
 
-## License
-
-Licensed under the EUPL V.1.1.
-
-For full details, see [LICENSE.md](LICENSE.md).
-
 ## Installation
 
-1. Download and extract the
-  [ZIP](https://github.com/europeana/europeana-proxy-ruby/archive/master.zip)
-2. Install dependencies with Bundler:
-
-    `bundle`
+1. Clone the repository: `git clone https://github.com/europeana/europeana-proxy-ruby.git`
+2. Install dependencies with Bundler: `cd europeana-proxy-ruby && bundle`
 
 ## Configuration
 
@@ -141,3 +132,9 @@ Any other error preventing completion of the request | 500
   * a Sinatra app
 * Document in this README:
   * logger output
+
+## License
+
+Licensed under the EUPL V.1.1.
+
+For full details, see [LICENSE.md](LICENSE.md).
