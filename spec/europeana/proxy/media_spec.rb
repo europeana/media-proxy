@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # feature spec for the app
 describe Europeana::Proxy::Media do
   it 'capitalises header names'
