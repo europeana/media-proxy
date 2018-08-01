@@ -1,6 +1,6 @@
 # Europeana::Proxy::Media
 
-[![Build Status](https://travis-ci.org/europeana/europeana-proxy-ruby.svg?branch=master)](https://travis-ci.org/europeana/europeana-proxy-ruby) [![Coverage Status](https://coveralls.io/repos/europeana/europeana-proxy-ruby/badge.svg?branch=master&service=github)](https://coveralls.io/github/europeana/europeana-proxy-ruby?branch=master) [![security](https://hakiri.io/github/europeana/europeana-proxy-ruby/master.svg)](https://hakiri.io/github/europeana/europeana-proxy-ruby/master)
+[![Build Status](https://travis-ci.org/europeana/europeana-proxy-ruby.svg?branch=develop)](https://travis-ci.org/europeana/europeana-proxy-ruby) [![security](https://hakiri.io/github/europeana/europeana-proxy-ruby/master.svg)](https://hakiri.io/github/europeana/europeana-proxy-ruby/develop) [![Maintainability](https://api.codeclimate.com/v1/badges/cdc8d52a390d16ee64f9/maintainability)](https://codeclimate.com/github/europeana/europeana-proxy-ruby/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/cdc8d52a390d16ee64f9/test_coverage)](https://codeclimate.com/github/europeana/europeana-proxy-ruby/test_coverage)
 
 [Rack](http://rack.github.io/) proxy to download the media resources
 associated with Europeana records.

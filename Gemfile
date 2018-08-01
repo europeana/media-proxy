@@ -12,7 +12,7 @@ gem 'rack-proxy', '~> 0.5'
 gem 'rake', '~> 10.0'
 
 # @todo group these
-gem 'coveralls', require: false
+gem 'simplecov', require: false
 gem 'dotenv'
 gem 'foreman'
 gem 'rspec', '~> 3.2'
