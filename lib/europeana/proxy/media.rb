@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_support/core_ext/object/blank'
 require 'europeana/api'
 require 'mime/types'
@@ -27,8 +29,7 @@ module Europeana
         # @return [Array] {Rack} response triplet
         def response_for_status_code(status_code)
           [status_code, { 'Content-Type' => 'text/plain' },
-           [Rack::Utils::HTTP_STATUS_CODES[status_code]]
-          ]
+           [Rack::Utils::HTTP_STATUS_CODES[status_code]]]
         end
       end
 
@@ -120,7 +121,7 @@ module Europeana
       # @return [Array] Rewritten Rack response triplet
       def rewrite_response_with_env(triplet, env)
         status_code = triplet.first.to_i
-        if (200..299).include?(status_code)
+        if (200..299).cover?(status_code)
           rewrite_success_response(triplet, env)
         else
           response_for_status_code(status_code)
@@ -132,7 +133,7 @@ module Europeana
         self.class.response_for_status_code(status_code)
       end
 
-      def rewrite_response(triplet)
+      def rewrite_response(_triplet)
         fail StandardError, "Use ##{rewrite_response_with_env}, not ##{rewrite_response}"
       end
 
@@ -174,7 +175,7 @@ module Europeana
         search_query = %(europeana_id:"#{env['app.record_id']}")
 
         if env['app.params']['view'].present?
-          search_query = search_query + %( AND (provider_aggregation_edm_isShownBy:"#{env['app.params']['view']}" OR provider_aggregation_edm_hasView:"#{env['app.params']['view']}"))
+          search_query += %( AND (provider_aggregation_edm_isShownBy:"#{env['app.params']['view']}" OR provider_aggregation_edm_hasView:"#{env['app.params']['view']}"))
         end
 
         search_query
@@ -248,7 +249,7 @@ module Europeana
         fail Errors::UnknownMediaType, content_type if media_type.nil?
 
         extension = opts[:extension] || media_type.preferred_extension
-        filename = env['app.record_id'].sub('/', '').gsub('/', '_')
+        filename = env['app.record_id'].sub('/', '').tr('/', '_')
         filename = filename + '.' + extension unless extension.nil?
 
         triplet[1]['Content-Disposition'] = "#{content_disposition(env)}; filename=#{filename}"
@@ -338,7 +339,7 @@ module Europeana
           raise
         end
       rescue ArgumentError => e
-        if e.message.match(/^Invalid Europeana record ID/)
+        if /^Invalid Europeana record ID/.match?(e.message)
           response_for_status_code(404)
         elsif %w(development test).include?(ENV['RACK_ENV'])
           raise

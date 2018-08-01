@@ -1,8 +1,10 @@
-$LOAD_PATH.unshift(File.expand_path('../lib', __FILE__))
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift(File.expand_path('lib', __dir__))
 
 # @todo use Sinatra?
 # @todo use any other stock Rack middlewares?
-if ['development', 'test'].include?(ENV['RACK_ENV'])
+if %w(development test).include?(ENV['RACK_ENV'])
   require 'dotenv'
   Dotenv.load
 end
@@ -25,7 +27,7 @@ logger = Logger.new(STDOUT)
 use Rack::CommonLogger, logger
 
 # NB: HttpLogger will only log full requests & responses if streaming is disabled
-# by env var DISABLE_STREAMING=1 
+# by env var DISABLE_STREAMING=1
 HttpLogger.logger = logger
 HttpLogger.log_headers = true
 HttpLogger.log_response_body = false
@@ -35,7 +37,7 @@ if ENV['CORS_ORIGINS']
   use Rack::Cors do
     allow do
       origins ENV['CORS_ORIGINS'].split(' ')
-      resource '/*', headers: :any, methods: [:get, :head, :options],
+      resource '/*', headers: :any, methods: %i(get head options),
                      expose: ['Content-Length']
     end
   end
@@ -43,8 +45,8 @@ end
 
 use Europeana::Proxy::Media
 
-app = Proc.new do |env|
-  status = (env['REQUEST_PATH'] == '/') ? 200 : 404
+app = proc do |env|
+  status = env['REQUEST_PATH'] == '/' ? 200 : 404
   Europeana::Proxy::Media.response_for_status_code(status)
 end
 
