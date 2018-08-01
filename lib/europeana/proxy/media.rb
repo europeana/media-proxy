@@ -175,7 +175,8 @@ module Europeana
         search_query = %(europeana_id:"#{env['app.record_id']}")
 
         if env['app.params']['view'].present?
-          search_query += %( AND (provider_aggregation_edm_isShownBy:"#{env['app.params']['view']}" OR provider_aggregation_edm_hasView:"#{env['app.params']['view']}"))
+          search_query += %< AND (provider_aggregation_edm_isShownBy:"#{env['app.params']['view']}">
+          search_query += %< OR provider_aggregation_edm_hasView:"#{env['app.params']['view']}")>
         end
 
         search_query
