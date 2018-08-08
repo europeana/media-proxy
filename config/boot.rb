@@ -12,8 +12,8 @@ Dotenv.load if defined?(Dotenv)
 require 'europeana/proxy'
 
 unless ENV.key?('EUROPEANA_API_KEY')
-  Europeana::Proxy.logger.fail('EUROPEANA_API_KEY must be set in the environment')
-#   exit 1
+  Europeana::Proxy.logger.fatal('EUROPEANA_API_KEY must be set in the environment')
+  exit 1
 end
 
 Europeana::API.key = ENV['EUROPEANA_API_KEY']
