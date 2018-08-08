@@ -1,3 +1,10 @@
+GIT
+  remote: https://github.com/cyu/rack-cors.git
+  revision: 51f5c534d968d8ed89ae25f4aa4e93d16cc115f1
+  ref: 51f5c534d968d8ed89ae25f4aa4e93d16cc115f1
+  specs:
+    rack-cors (1.0.2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -43,7 +50,6 @@ GEM
     powerpack (0.1.2)
     puma (3.12.0)
     rack (2.0.5)
-    rack-cors (1.0.2)
     rack-protection (2.0.3)
       rack
     rack-proxy (0.6.4)
@@ -103,7 +109,7 @@ DEPENDENCIES
   mime-types (~> 2.4)
   puma
   rack
-  rack-cors
+  rack-cors!
   rack-proxy (~> 0.5)
   rake
   rspec (~> 3.2)
