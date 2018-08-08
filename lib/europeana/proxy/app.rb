@@ -54,7 +54,7 @@ module Europeana
       def call(env)
         request = Rack::Request.new(env)
         status = request.path == '/' ? 200 : 404
-        response_for_status_code(200)
+        response_for_status_code(status)
       end
     end
   end
