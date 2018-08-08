@@ -8,5 +8,12 @@ module Europeana
   module Proxy
     autoload :Errors, 'europeana/proxy/errors'
     autoload :Media, 'europeana/proxy/media'
+
+    class << self
+      attr_accessor :logger
+    end
+
+    self.logger = Logger.new(STDOUT)
+    self.logger.progname = '[Europeana::Proxy]'
   end
 end
