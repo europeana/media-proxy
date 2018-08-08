@@ -57,8 +57,8 @@ module Europeana
       def initialize(app, opts = {})
         self.max_redirects = opts.delete(:max_redirects) || DEFAULT_MAX_REDIRECTS
         self.permitted_api_urls = opts.delete(:permitted_api_urls) || []
-        self.permitted_api_urls << Europeana::API.url
-        self.permitted_api_urls.uniq!
+        permitted_api_urls << Europeana::API.url
+        permitted_api_urls.uniq!
         self.raise_exception_classes = opts.delete(:raise_exception_classes) || []
 
         opts[:streaming] ||= true

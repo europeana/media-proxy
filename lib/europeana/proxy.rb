@@ -14,6 +14,6 @@ module Europeana
     end
 
     self.logger = Logger.new(STDOUT)
-    self.logger.progname = '[Europeana::Proxy]'
+    logger.progname = '[Europeana::Proxy]'
   end
 end
