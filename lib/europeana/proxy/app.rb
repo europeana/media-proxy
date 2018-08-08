@@ -10,7 +10,7 @@ module Europeana
         set :permitted_api_urls,
             ENV['PERMITTED_API_URLS'].present? ? ENV['PERMITTED_API_URLS'].split(',').map(&:strip) : []
         set :raise_exception_classes,
-            %w(development test).include?(ENV['RACK_ENV']) ? [ArgumentError, StandardError] : []
+            settings.production? ? [] : [ArgumentError, StandardError]
         set :streaming, (ENV['DISABLE_STREAMING'] != '1')
       end
 
