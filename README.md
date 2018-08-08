@@ -2,8 +2,8 @@
 
 [![Build Status](https://travis-ci.org/europeana/europeana-proxy-ruby.svg?branch=develop)](https://travis-ci.org/europeana/europeana-proxy-ruby) [![security](https://hakiri.io/github/europeana/europeana-proxy-ruby/master.svg)](https://hakiri.io/github/europeana/europeana-proxy-ruby/develop) [![Maintainability](https://api.codeclimate.com/v1/badges/cdc8d52a390d16ee64f9/maintainability)](https://codeclimate.com/github/europeana/europeana-proxy-ruby/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/cdc8d52a390d16ee64f9/test_coverage)](https://codeclimate.com/github/europeana/europeana-proxy-ruby/test_coverage)
 
-[Rack](http://rack.github.io/) proxy to download the media resources
-associated with Europeana records.
+[Sinatra](http://sinatrarb.com/) app and [Rack](http://rack.github.io/) middleware
+to proxy the media objects associated with Europeana records.
 
 ## Installation
 
@@ -124,14 +124,6 @@ Remote provider is unreachable | 502
 Europeana REST API returns an invalid response | 502
 Request to remote provider times out | 504
 Any other error preventing completion of the request | 500
-
-## TODO
-
-* Make the proxy:
-  * usable as Rack middleware, and document installation as a gem
-  * a Sinatra app
-* Document in this README:
-  * logger output
 
 ## License
 
