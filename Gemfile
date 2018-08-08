@@ -12,7 +12,6 @@ gem 'rack'
 gem 'rack-cors', git: 'https://github.com/cyu/rack-cors.git', ref: '51f5c534d968d8ed89ae25f4aa4e93d16cc115f1'
 gem 'rack-proxy', '~> 0.5'
 gem 'rake'
-gem 'sinatra'
 
 group :development, :test do
   gem 'dotenv'

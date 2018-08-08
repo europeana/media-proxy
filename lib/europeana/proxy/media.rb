@@ -29,21 +29,11 @@ module Europeana
       #     and responding with plain text HTTP error responses, e.g. in dev env
       attr_accessor :raise_exception_classes
 
-      class << self
-        ##
-        # Plain text response for a given HTTP status code
-        #
-        # @param status_code [Fixnum] HTTP status code
-        # @return [Array] {Rack} response triplet
-        def response_for_status_code(status_code)
-          [status_code, { 'Content-Type' => 'text/plain' },
-           [Rack::Utils::HTTP_STATUS_CODES[status_code]]]
-        end
-      end
-
       # @!attribute [r] logger
       #   @return [Logger] Logger for proxy actitivies
       delegate :logger, to: Europeana::Proxy
+
+      delegate :response_for_status_code, to: Europeana::Proxy
 
       # @param app Rack app
       # @param opts [Hash] options
