@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'europeana/proxy/version'
+require 'logger'
 
 module Europeana
   # HTTP proxy for Europeana web resources
@@ -21,7 +22,7 @@ module Europeana
       end
     end
 
-    self.logger = Logger.new(STDOUT)
+    self.logger = ::Logger.new(STDOUT)
     logger.progname = '[Europeana::Proxy]'
   end
 end
