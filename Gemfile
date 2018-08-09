@@ -1,22 +1,28 @@
 # frozen_string_literal: true
 
-ENV['RACK_ENV'] ||= 'development'
-
 source 'https://rubygems.org'
 
-gem 'activesupport', '~> 4.2.3'
-gem 'europeana-api', '~> 1.0.0'
-gem 'mime-types', '~> 2.4'
-gem 'puma', '>= 2.0.0'
-gem 'rack', '~> 1.6.4'
-gem 'rack-cors', '~> 0.4.0', git: 'https://github.com/europeana/rack-cors.git', branch: 'europeana-proxy'
-gem 'rack-proxy', '~> 0.5'
-gem 'rake', '~> 10.0'
-
-# TODO: group these
-gem 'dotenv'
-gem 'foreman'
+gem 'activesupport'
+gem 'europeana-api'
 gem 'http_logger'
-gem 'rspec', '~> 3.2'
-gem 'rubocop', '~> 0.53', require: false
-gem 'simplecov', require: false
+gem 'mime-types'
+gem 'puma'
+gem 'rack'
+# Pending release > 1.0.2
+gem 'rack-cors', git: 'https://github.com/cyu/rack-cors.git', ref: '51f5c534d968d8ed89ae25f4aa4e93d16cc115f1'
+gem 'rack-proxy'
+gem 'rake'
+
+group :development, :test do
+  gem 'dotenv'
+  gem 'rspec'
+  gem 'rubocop', '~> 0.53', require: false
+end
+
+group :development do
+  gem 'foreman'
+end
+
+group :test do
+  gem 'simplecov', require: false
+end
