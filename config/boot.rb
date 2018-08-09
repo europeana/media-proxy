@@ -2,10 +2,10 @@
 
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 
-ENV['APP_ENV'] ||= 'development'
+ENV['RACK_ENV'] ||= 'development'
 
 require 'bundler'
-Bundler.require(:default, ENV['APP_ENV'])
+Bundler.require(:default, ENV['RACK_ENV'])
 
 Dotenv.load if defined?(Dotenv)
 
