@@ -6,10 +6,13 @@ require 'logger'
 module Europeana
   # HTTP proxy for Europeana web resources
   module Proxy
+    autoload :App, 'europeana/proxy/app'
     autoload :Errors, 'europeana/proxy/errors'
     autoload :Media, 'europeana/proxy/media'
 
     class << self
+      # @!attribute [r] logger
+      #   @return [Logger] Logger for proxy actitivies
       attr_accessor :logger
 
       # Plain text response for a given HTTP status code
@@ -22,7 +25,7 @@ module Europeana
       end
     end
 
-    self.logger = ::Logger.new(STDOUT)
+    self.logger = Logger.new(STDOUT)
     logger.progname = '[Europeana::Proxy]'
   end
 end

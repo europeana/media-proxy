@@ -29,11 +29,7 @@ module Europeana
       #     and responding with plain text HTTP error responses, e.g. in dev env
       attr_accessor :raise_exception_classes
 
-      # @!attribute [r] logger
-      #   @return [Logger] Logger for proxy actitivies
-      delegate :logger, to: Europeana::Proxy
-
-      delegate :response_for_status_code, to: Europeana::Proxy
+      delegate :logger, :response_for_status_code, to: Europeana::Proxy
 
       # @param app Rack app
       # @param opts [Hash] options
