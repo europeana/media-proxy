@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'active_support/core_ext/object/blank'
 require 'europeana/api'
 require 'mime/types'
 require 'rack/proxy'
@@ -146,10 +145,10 @@ module Europeana
         search_response = Europeana::API.record.search(search_params)
 
         if search_response['totalResults'].zero?
-          unknown_view_msg = if env['app.params']['view'].present?
-                               %(Unknown view URL for record "#{env['app.record_id']}": "#{env['app.params']['view']}")
-                             else
+          unknown_view_msg = if env['app.params']['view']&.empty?
                                %(Unknown record "#{env['app.record_id']}")
+                             else
+                               %(Unknown view URL for record "#{env['app.record_id']}": "#{env['app.params']['view']}")
                              end
 
           fail Errors::UnknownView, unknown_view_msg
@@ -159,13 +158,13 @@ module Europeana
       end
 
       def view_url_to_proxy(env, search_response)
-        requested_view = if env['app.params']['view'].present?
-                           env['app.params']['view']
-                         else
+        requested_view = if env['app.params']['view']&.empty?
                            [search_response['items'].first['edmIsShownBy']].flatten.first
+                         else
+                           env['app.params']['view']
                          end
 
-        if requested_view.blank?
+        if requested_view&.empty?
           fail Errors::UnknownView, %(No view for record "#{env['app.record_id']}")
         end
 
@@ -176,7 +175,7 @@ module Europeana
       def api_search_query(env)
         search_query = %(europeana_id:"#{env['app.record_id']}")
 
-        if env['app.params']['view'].present?
+        unless env['app.params']['view']&.empty?
           search_query += %< AND (provider_aggregation_edm_isShownBy:"#{env['app.params']['view']}">
           search_query += %< OR provider_aggregation_edm_hasView:"#{env['app.params']['view']}")>
         end
@@ -228,8 +227,8 @@ module Europeana
           triplet[1]['content-type'] = media_type.content_type
         end
         download_response(triplet, 'application/octet-stream', env,
-                          extension: extension.blank? ? nil : extension,
-                          media_type: media_type.blank? ? nil : media_type)
+                          extension: extension&.empty? ? nil : extension,
+                          media_type: media_type&.empty? ? nil : media_type)
       end
 
       # Rewrite response to force file download
@@ -272,7 +271,7 @@ module Europeana
         env.reject! { |k, _v| k.match(/^HTTP_X_/) } if env['app.urls'].size == 1
 
         uri = URI.parse(url)
-        fail Errors::BadUrl, url unless uri.host.present?
+        fail Errors::BadUrl, url if uri.host&.empty?
 
         rewrite_env_for_uri(env, uri)
       end
@@ -281,7 +280,7 @@ module Europeana
         env['HTTP_HOST'] = uri.host
         env['HTTP_HOST'] << ":#{uri.port}" unless uri.port == (uri.scheme == 'https' ? 443 : 80)
         env['HTTP_X_FORWARDED_PORT'] = uri.port.to_s
-        env['REQUEST_PATH'] = env['PATH_INFO'] = uri.path.blank? ? '/' : uri.path
+        env['REQUEST_PATH'] = env['PATH_INFO'] = uri.path&.empty? ? '/' : uri.path
         env.delete('HTTP_COOKIE')
         env['QUERY_STRING'] = uri.query || ''
         if uri.scheme == 'https'
@@ -319,7 +318,7 @@ module Europeana
 
       def absolute_redirect_url(env, url_or_path)
         u = URI.parse(url_or_path)
-        return url_or_path if u.host.present?
+        return url_or_path unless u.host&.empty?
 
         # relative redirect: keep previous host; resolve path from previous url
         up = URI.parse(env['app.urls'][-1])
