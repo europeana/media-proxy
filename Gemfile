@@ -2,6 +2,7 @@
 
 source 'https://rubygems.org'
 
+gem 'activesupport'
 gem 'europeana-api'
 gem 'http_logger'
 gem 'mime-types'

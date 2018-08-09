@@ -96,6 +96,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activesupport
   dotenv
   europeana-api
   foreman
