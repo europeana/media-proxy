@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/europeana/europeana-proxy-ruby.svg?branch=develop)](https://travis-ci.org/europeana/europeana-proxy-ruby) [![security](https://hakiri.io/github/europeana/europeana-proxy-ruby/master.svg)](https://hakiri.io/github/europeana/europeana-proxy-ruby/develop) [![Maintainability](https://api.codeclimate.com/v1/badges/cdc8d52a390d16ee64f9/maintainability)](https://codeclimate.com/github/europeana/europeana-proxy-ruby/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/cdc8d52a390d16ee64f9/test_coverage)](https://codeclimate.com/github/europeana/europeana-proxy-ruby/test_coverage)
 
-[Rack](http://rack.github.io/) proxy to download the media resources
+[Rack](http://rack.github.io/) app and middleware to proxy the media objects
 associated with Europeana records.
 
 ## Installation
@@ -40,10 +40,13 @@ detect .env environment variables:
 
 ### Overview
 
-1. Proxy receives HTTP request with Europeana record ID as URL path
+1. Proxy receives HTTP request with Europeana record ID as URL path, with an
+  optional `view` parameter with the URI of a web resource
 2. Proxy requests record metadata from Europeana REST API
-3. Proxy gets edm:isShownBy URL from record metadata
-4. Proxy issues an HTTP request for edm:isShownBy URL
+3. Proxy gets edm:isShownBy URL from record metadata, unless `view` parameter
+  was specified
+4. Proxy issues an HTTP request for `view` parameter URL if specified,
+  otherwise edm:isShownBy URL
 5. Proxy follows redirects in response from remote provider
 6. If final target is HTML, user agent is redirected to it
 7. If final target is not HTML, proxy constructs a file name based on record ID
@@ -54,7 +57,7 @@ detect .env environment variables:
 ### Valid URL paths
 
 The only URL paths accepted by the proxy application are Europeana record IDs
-with a `view` parameter containing the URL of the required resource.
+with an optional `view` parameter containing the URL of the required resource.
 
 Optionally the `api_url` paramater may be supplied. If this is present, the aplication will query the specified API
 endpoint. Non permitted API urls will result in a 403 Forbidden response. By default the `Europeana::API.url` will
@@ -124,14 +127,6 @@ Remote provider is unreachable | 502
 Europeana REST API returns an invalid response | 502
 Request to remote provider times out | 504
 Any other error preventing completion of the request | 500
-
-## TODO
-
-* Make the proxy:
-  * usable as Rack middleware, and document installation as a gem
-  * a Sinatra app
-* Document in this README:
-  * logger output
 
 ## License
 
