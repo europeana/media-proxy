@@ -89,6 +89,9 @@ module Europeana
 
       # Should this request be proxied?
       #
+      # * Only GET and HEAD methods are proxied
+      # * Only request paths matching the Europeana record ID format are proxied
+      #
       # @param env [Hash] request env
       # @return [Boolean]
       def proxy?(env)
@@ -137,8 +140,7 @@ module Europeana
       protected
 
       def api_search_response(env)
-        search_params = { query: api_search_query(env), profile: 'rich', api_url: env['app.params']['api_url'] }
-        search_response = Europeana::API.record.search(search_params)
+        search_response = Europeana::API.record.search(api_search_params(env))
 
         if search_response['totalResults'].zero?
           unknown_view_msg = if env['app.params']['view'].present?
@@ -167,7 +169,30 @@ module Europeana
         requested_view
       end
 
-      # Constructs an API search query parameter for view validation
+      # Build API search parameters for this request
+      #
+      # If a view parameter was specified, the search only needs to verify that
+      # a record exists with the given ID and having a web resource matching
+      # the view parameter, so it suffices to request the minimal profile with
+      # 0 rows.
+      #
+      # If no view parameter was specified, then edm:isShownBy is proxied, for
+      # which the rich profile is needed, and the result needs to be returned,
+      # i.e. 1 row is needed.
+      #
+      # @return [Hash] parameters
+      def api_search_params(env)
+        {
+          query: api_search_query(env),
+          profile: env['app.params']['view'].present? ? 'minimal' : 'rich',
+          api_url: env['app.params']['api_url'],
+          rows: env['app.params']['view'].present? ? 0 : 1
+        }
+      end
+
+      # Construct an API search query parameter for view validation
+      #
+      # @return [String] API search query for this request
       def api_search_query(env)
         search_query = %(europeana_id:"#{env['app.record_id']}")
 
@@ -248,7 +273,7 @@ module Europeana
         filename = filename + '.' + extension unless extension.nil?
 
         triplet[1]['Content-Disposition'] = "#{content_disposition(env)}; filename=#{filename}"
-        # prevent duplicate headers on some text/html documents
+        # Prevent duplicate headers on some text/html documents
         triplet[1]['Content-Length'] = triplet[1]['content-length']
         triplet
       end
