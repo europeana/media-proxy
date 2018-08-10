@@ -8,49 +8,49 @@ require 'uri'
 
 module Europeana
   module Proxy
-    ##
     # Rack middleware to proxy Europeana record media resources
-    #
-    # @todo only respond to / proxy GET requests?
     class Media < Rack::Proxy
       # Default maximum number of redirects to follow.
-      # Can be overriden in {opts} passed to {#initialize}.
-      MAX_REDIRECTS = 3
+      # Can be overriden in `opts` argument passed to +#initialize+.
+      DEFAULT_MAX_REDIRECTS = 3
 
-      # @!attribute [r] record_id
-      #   @return [String] Europeana record ID of the requested object
-      attr_reader :record_id
+      # @!attribute [rw] max_redirects
+      #   @return [Integr] Maximum number of redirects to follow, defaults to
+      #     +DEFAULT_MAX_REDIRECTS+
+      attr_accessor :max_redirects
 
-      class << self
-        ##
-        # Plain text response for a given HTTP status code
-        #
-        # @param status_code [Fixnum] HTTP status code
-        # @return [Array] {Rack} response triplet
-        def response_for_status_code(status_code)
-          [status_code, { 'Content-Type' => 'text/plain' },
-           [Rack::Utils::HTTP_STATUS_CODES[status_code]]]
-        end
-      end
+      # @!attribute [rw] permitted_api_urls
+      #   @return [Array<String>] API URLs to permit in +api_url+ parameter,
+      #     to which +Europeana::API.url+ is always added
+      attr_accessor :permitted_api_urls
 
-      # @!attribute [r] logger
-      #   @return [Logger] Logger for proxy actitivies
-      attr_reader :logger
+      # @!attribute [rw] raise_exception_classes
+      #   @return [Array<Class>] Exception classes to raise instead of logging
+      #     and responding with plain text HTTP error responses, e.g. in dev env
+      attr_accessor :raise_exception_classes
+
+      delegate :logger, :response_for_status_code, to: Europeana::Proxy
 
       # @param app Rack app
-      # @param opts [Hash] options
-      # @option opts [Fixnum] :max_redirects Maximum number of redirects to
-      #   follow
-      def initialize(app, opts = {})
-        @logger = opts.fetch(:logger, Logger.new(STDOUT))
-        @logger.progname ||= '[Europeana::Proxy]'
-        @max_redirects = opts.fetch(:max_redirects, MAX_REDIRECTS)
-        @permitted_api_urls = ENV['PERMITTED_API_URLS'].present? ? ENV['PERMITTED_API_URLS'].split(',').map(&:strip) : []
-        @permitted_api_urls << Europeana::API.url
+      # @param options [Hash] options
+      # @option options [Integer] :max_redirects Maximum number of redirects to
+      #   follow, defaults to +DEFAULT_MAX_REDIRECTS+
+      # @options options [Array<String>] :permitted_api_urls API URLs to permit
+      #   in +api_url+ parameter, to which +Europeana::API.url+ is always added
+      # @options options [Array<Class>] :raise_exception_classes Exception classes
+      #   to raise instead of logging and responding with plain text HTTP error
+      #   responses, e.g. in dev env
+      def initialize(app, options = {})
+        opts = options.dup
+        self.max_redirects = opts.delete(:max_redirects) || DEFAULT_MAX_REDIRECTS
+        self.permitted_api_urls = opts.delete(:permitted_api_urls) || []
+        permitted_api_urls << Europeana::API.url
+        permitted_api_urls.uniq!
+        self.raise_exception_classes = opts.delete(:raise_exception_classes) || []
 
-        streaming = (ENV['DISABLE_STREAMING'] != '1')
+        opts[:streaming] ||= true
 
-        super(opts.merge(streaming: streaming))
+        super(opts)
         @app = app
       end
 
@@ -62,8 +62,8 @@ module Europeana
       def call(env)
         GC.start
         rescue_call_errors do
+          init_app_env_store(env)
           if proxy?(env)
-            init_app_env_store(env)
             rewrite_response_with_env(perform_request(rewrite_env(env)), env)
           else
             @app.call(env)
@@ -71,28 +71,31 @@ module Europeana
         end
       end
 
-      ##
-      # Init the app's data store in the env before a new request
+      # Init the app's data store in the env before processing a request
+      #
+      # @param env [Hash] request env
+      # @return [Hash] env with additional middleware-specific values
       def init_app_env_store(env)
-        env['app.params'] = Rack::Request.new(env).params
+        env['app.request'] = Rack::Request.new(env)
+        env['app.params'] = env['app.request'].params
         env['app.urls'] = []
         env['app.record_id'] = nil
         env['app.redirects'] = 0
         env
       end
 
-      ##
       # Should this request be proxied?
+      #
+      # * Only GET and HEAD methods are proxied
+      # * Only request paths matching the Europeana record ID format are proxied
       #
       # @param env [Hash] request env
       # @return [Boolean]
-      # @todo move into Rack/Sinatra app?
       def proxy?(env)
-        match = env['REQUEST_PATH'].match(%r{^/([^/]*?)/([^/]*)$})
-        !match.nil?
+        (env['app.request'].get? || env['app.request'].head?) &&
+          !!(env['app.request'].path =~ %r{/[0-9]+/[a-zA-Z0-9_]+\z})
       end
 
-      ##
       # Rewrite request env for edm:isShownBy target URL
       #
       # @param env [Hash] request env
@@ -101,7 +104,7 @@ module Europeana
         env['app.record_id'] = env['REQUEST_PATH']
 
         if env['app.params']['api_url']
-          fail Errors::AccessDenied, 'Requested API url is invalid' unless @permitted_api_urls.include?(env['app.params']['api_url'])
+          fail Errors::AccessDenied, 'Requested API url is invalid' unless permitted_api_urls.include?(env['app.params']['api_url'])
         end
 
         search_response = api_search_response(env)
@@ -109,7 +112,6 @@ module Europeana
         rewrite_env_for_url(env, requested_view)
       end
 
-      ##
       # Rewrite the response
       #
       # Where the HTTP status code indicates success, delegates to
@@ -128,11 +130,6 @@ module Europeana
         end
       end
 
-      # (see .response_for_status_code)
-      def response_for_status_code(status_code)
-        self.class.response_for_status_code(status_code)
-      end
-
       def rewrite_response(_triplet)
         fail StandardError, "Use ##{rewrite_response_with_env}, not ##{rewrite_response}"
       end
@@ -140,8 +137,7 @@ module Europeana
       protected
 
       def api_search_response(env)
-        search_params = { query: api_search_query(env), profile: 'rich', api_url: env['app.params']['api_url'] }
-        search_response = Europeana::API.record.search(search_params)
+        search_response = Europeana::API.record.search(api_search_params(env))
 
         if search_response['totalResults'].zero?
           unknown_view_msg = if env['app.params']['view'].present?
@@ -170,7 +166,30 @@ module Europeana
         requested_view
       end
 
-      # Constructs an API search query parameter for view validation
+      # Build API search parameters for this request
+      #
+      # If a view parameter was specified, the search only needs to verify that
+      # a record exists with the given ID and having a web resource matching
+      # the view parameter, so it suffices to request the minimal profile with
+      # 0 rows.
+      #
+      # If no view parameter was specified, then edm:isShownBy is proxied, for
+      # which the rich profile is needed, and the result needs to be returned,
+      # i.e. 1 row is needed.
+      #
+      # @return [Hash] parameters
+      def api_search_params(env)
+        {
+          query: api_search_query(env),
+          profile: env['app.params']['view'].present? ? 'minimal' : 'rich',
+          api_url: env['app.params']['api_url'],
+          rows: env['app.params']['view'].present? ? 0 : 1
+        }
+      end
+
+      # Construct an API search query parameter for view validation
+      #
+      # @return [String] API search query for this request
       def api_search_query(env)
         search_query = %(europeana_id:"#{env['app.record_id']}")
 
@@ -182,7 +201,6 @@ module Europeana
         search_query
       end
 
-      ##
       # Rewrite a successful response
       #
       # (see #rewrite_response)
@@ -210,7 +228,6 @@ module Europeana
         end
       end
 
-      ##
       # Rewrite response for application/octet-stream content-type
       #
       # application/octet-stream = "arbitrary binary data" [RFC 2046], so
@@ -232,7 +249,6 @@ module Europeana
                           media_type: media_type.blank? ? nil : media_type)
       end
 
-      ##
       # Rewrite response to force file download
       #
       # @param triplet [Array] Rack response triplet
@@ -254,7 +270,7 @@ module Europeana
         filename = filename + '.' + extension unless extension.nil?
 
         triplet[1]['Content-Disposition'] = "#{content_disposition(env)}; filename=#{filename}"
-        # prevent duplicate headers on some text/html documents
+        # Prevent duplicate headers on some text/html documents
         triplet[1]['Content-Length'] = triplet[1]['content-length']
         triplet
       end
@@ -296,8 +312,8 @@ module Europeana
 
       def perform_redirect(env, url)
         env['app.redirects'] += 1
-        if env['app.redirects'] > @max_redirects
-          fail Errors::TooManyRedirects, @max_redirects
+        if env['app.redirects'] > max_redirects
+          fail Errors::TooManyRedirects, max_redirects
         end
 
         url = url.first if url.is_a?(Array)
@@ -330,37 +346,33 @@ module Europeana
         up.merge(u).to_s
       end
 
-      # @todo move error handling out of this class, into the Rack/Sinatra app
       def rescue_call_errors
-        begin
-          yield
-        rescue StandardError => e
-          # log all errors, then handle them individually below
-          logger.error(e.message)
-          raise
-        end
-      rescue ArgumentError => e
-        if /^Invalid Europeana record ID/.match?(e.message)
+        yield
+      rescue StandardError => exception
+        # Log all errors, then handle them individually below
+        logger.error(exception.message)
+        raise if raise_exception_classes.include?(exception.class)
+        error_response_for_exception(exception)
+      end
+
+      def error_response_for_exception(exception)
+        case exception
+        when ArgumentError
+          response_for_status_code(500)
+        when Europeana::API::Errors::RequestError
+          response_for_status_code(400)
+        when Errors::AccessDenied
+          response_for_status_code(403)
+        when Europeana::API::Errors::ResourceNotFoundError, Errors::UnknownView
           response_for_status_code(404)
-        elsif %w(development test).include?(ENV['RACK_ENV'])
-          raise
-        else
+        when Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
+             Errors::TooManyRedirects, Errno::ENETUNREACH
+          response_for_status_code(502) # Bad Gateway!
+        when Errno::ETIMEDOUT
+          response_for_status_code(504) # Gateway Timeout
+        when StandardError
           response_for_status_code(500)
         end
-      rescue Europeana::API::Errors::RequestError
-        response_for_status_code(400)
-      rescue Errors::AccessDenied
-        response_for_status_code(403)
-      rescue Europeana::API::Errors::ResourceNotFoundError, Errors::UnknownView
-        response_for_status_code(404)
-      rescue Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
-             Errors::TooManyRedirects, Errno::ENETUNREACH
-        response_for_status_code(502) # Bad Gateway!
-      rescue Errno::ETIMEDOUT
-        response_for_status_code(504) # Gateway Timeout
-      rescue StandardError
-        raise if %w(development test).include?(ENV['RACK_ENV'])
-        response_for_status_code(500)
       end
     end
   end
