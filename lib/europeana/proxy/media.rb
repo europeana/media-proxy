@@ -32,15 +32,16 @@ module Europeana
       delegate :logger, :response_for_status_code, to: Europeana::Proxy
 
       # @param app Rack app
-      # @param opts [Hash] options
-      # @option opts [Integer] :max_redirects Maximum number of redirects to
+      # @param options [Hash] options
+      # @option options [Integer] :max_redirects Maximum number of redirects to
       #   follow, defaults to +DEFAULT_MAX_REDIRECTS+
-      # @options opts [Array<String>] :permitted_api_urls API URLs to permit
+      # @options options [Array<String>] :permitted_api_urls API URLs to permit
       #   in +api_url+ parameter, to which +Europeana::API.url+ is always added
-      # @options opts [Array<Class>] :raise_exception_classes Exception classes
+      # @options options [Array<Class>] :raise_exception_classes Exception classes
       #   to raise instead of logging and responding with plain text HTTP error
       #   responses, e.g. in dev env
-      def initialize(app, opts = {})
+      def initialize(app, options = {})
+        opts = options.dup
         self.max_redirects = opts.delete(:max_redirects) || DEFAULT_MAX_REDIRECTS
         self.permitted_api_urls = opts.delete(:permitted_api_urls) || []
         permitted_api_urls << Europeana::API.url
