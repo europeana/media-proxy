@@ -29,7 +29,7 @@ module Europeana
       #     and responding with plain text HTTP error responses, e.g. in dev env
       attr_accessor :raise_exception_classes
 
-      delegate :logger, :response_for_status_code, to: Europeana::Proxy
+      delegate :http_status, :logger, :response_for_status_code, to: Europeana::Proxy
 
       # @param app Rack app
       # @param options [Hash] options
@@ -61,8 +61,10 @@ module Europeana
       # @return [Array] Rack response triplet
       def call(env)
         GC.start
-        rescue_call_errors do
-          init_app_env_store(env)
+
+        init_app_env_store(env)
+
+        rescue_call_errors(env) do
           if proxy?(env)
             rewrite_response_with_env(perform_request(rewrite_env(env)), env)
           else
@@ -123,11 +125,15 @@ module Europeana
       # @return [Array] Rewritten Rack response triplet
       def rewrite_response_with_env(triplet, env)
         status_code = triplet.first.to_i
-        if (200..299).cover?(status_code)
-          rewrite_success_response(triplet, env)
-        else
-          response_for_status_code(status_code)
-        end
+
+        response = if (200..299).cover?(status_code)
+                     rewrite_success_response(triplet, env)
+                   else
+                     # FIXME: would we ever reach here given other error handling?
+                     response_for_status_code(status_code)
+                   end
+
+        debug_profile?(env) ? debug_response_for_triplet(response) : response
       end
 
       def rewrite_response(_triplet)
@@ -346,32 +352,67 @@ module Europeana
         up.merge(u).to_s
       end
 
-      def rescue_call_errors
+      def rescue_call_errors(env)
         yield
       rescue StandardError => exception
         # Log all errors, then handle them individually below
         logger.error(exception.message)
         raise if raise_exception_classes.include?(exception.class)
-        error_response_for_exception(exception)
+        if debug_profile?(env)
+          debug_response_for_exception(exception)
+        else
+          error_response_for_exception(exception)
+        end
+      end
+
+      def debug_profile?(env)
+        env['app.params']['profile'] == 'debug'
+      end
+
+      def debug_response(status_code, error: nil)
+        body = {
+          success: (200..299).cover?(status_code),
+          status: "#{status_code} #{http_status(status_code)}"
+        }
+        body[:error] = error unless error.nil?
+
+        [
+          status_code,
+          { 'Content-Type' => 'application/json' },
+          [body.to_json]
+        ]
+      end
+
+      # @param triplet [Array] Original response triplet
+      def debug_response_for_triplet(triplet)
+        debug_response(triplet.first.to_i)
+      end
+
+      def debug_response_for_exception(exception)
+        debug_response(status_code_for_exception(exception), error: exception.message)
       end
 
       def error_response_for_exception(exception)
+        response_for_status_code(status_code_for_exception(exception))
+      end
+
+      def status_code_for_exception(exception)
         case exception
         when ArgumentError
-          response_for_status_code(500)
+          500
         when Europeana::API::Errors::RequestError
-          response_for_status_code(400)
+          400
         when Errors::AccessDenied
-          response_for_status_code(403)
+          403
         when Europeana::API::Errors::ResourceNotFoundError, Errors::UnknownView
-          response_for_status_code(404)
+          404
         when Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
              Errors::TooManyRedirects, Errno::ENETUNREACH
-          response_for_status_code(502) # Bad Gateway!
+          502 # Bad Gateway!
         when Errno::ETIMEDOUT
-          response_for_status_code(504) # Gateway Timeout
+          504 # Gateway Timeout
         when StandardError
-          response_for_status_code(500)
+          500
         end
       end
     end
