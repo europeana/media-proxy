@@ -21,7 +21,11 @@ module Europeana
       # @return [Array] {Rack} response triplet
       def response_for_status_code(status_code)
         [status_code, { 'Content-Type' => 'text/plain' },
-         [Rack::Utils::HTTP_STATUS_CODES[status_code]]]
+         [http_status(status_code)]]
+      end
+
+      def http_status(code)
+        Rack::Utils::HTTP_STATUS_CODES[code]
       end
     end
 
