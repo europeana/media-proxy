@@ -2,10 +2,22 @@
 
 # feature spec for the app
 describe Europeana::Proxy::Media do
-  it 'capitalises header names'
+  let(:app) { Europeana::Proxy::App.new }
+  let(:response) { get record_id }
+  let(:record_id) { '/123/abc' }
+
+  it 'capitalises header names' do
+    response.headers.each do |header|
+      expect(header).to match(%r(^[A-Z]))
+    end
+  end
 
   context 'when URL path is not a Europeana record ID' do
-    it 'responds with 404 Not Found'
+    let(:record_id) { '/invalid_record_id/123' }
+
+    it 'responds with 404 Not Found' do
+      expect(response.status).to eq(404)
+    end
   end
 
   context 'when HTTP status code=2xx' do

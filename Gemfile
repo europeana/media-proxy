@@ -24,5 +24,7 @@ group :development do
 end
 
 group :test do
+  gem 'rack-test'
   gem 'simplecov', require: false
+  gem 'webmock'
 end
