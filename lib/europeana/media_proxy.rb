@@ -8,7 +8,7 @@ module Europeana
   module MediaProxy
     autoload :App, 'europeana/media_proxy/app'
     autoload :Errors, 'europeana/media_proxy/errors'
-    autoload :Download, 'europeana/media_proxy/download'
+    autoload :Proxy, 'europeana/media_proxy/proxy'
 
     class << self
       # @!attribute [r] logger

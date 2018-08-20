@@ -15,7 +15,7 @@ module Europeana
           app = Europeana::MediaProxy::App.new
 
           use Rack::CommonLogger, Europeana::MediaProxy.logger
-          use Europeana::MediaProxy::Download,
+          use Europeana::MediaProxy::Proxy,
               permitted_api_urls: app.permitted_api_urls,
               raise_exception_classes: app.raise_exception_classes,
               streaming: app.streaming
