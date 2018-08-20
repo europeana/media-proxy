@@ -1,14 +1,14 @@
 # Europeana Media Proxy
 
-[![Build Status](https://travis-ci.org/europeana/europeana-proxy-ruby.svg?branch=develop)](https://travis-ci.org/europeana/europeana-proxy-ruby) [![security](https://hakiri.io/github/europeana/europeana-proxy-ruby/master.svg)](https://hakiri.io/github/europeana/europeana-proxy-ruby/develop) [![Maintainability](https://api.codeclimate.com/v1/badges/cdc8d52a390d16ee64f9/maintainability)](https://codeclimate.com/github/europeana/europeana-proxy-ruby/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/cdc8d52a390d16ee64f9/test_coverage)](https://codeclimate.com/github/europeana/europeana-proxy-ruby/test_coverage)
+[![Build Status](https://travis-ci.org/europeana/media-proxy.svg?branch=develop)](https://travis-ci.org/europeana/media-proxy) [![security](https://hakiri.io/github/europeana/media-proxy/develop.svg)](https://hakiri.io/github/europeana/media-proxy/develop) [![Maintainability](https://api.codeclimate.com/v1/badges/51f4d29eff1a7ee2b93b/maintainability)](https://codeclimate.com/github/europeana/media-proxy/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/51f4d29eff1a7ee2b93b/test_coverage)](https://codeclimate.com/github/europeana/media-proxy/test_coverage)
 
 [Rack](http://rack.github.io/) app and middleware to proxy the media objects
 (web resources) associated with [Europeana](https://www.europeana.eu/) records.
 
 ## Installation
 
-1. Clone the repository: `git clone https://github.com/europeana/europeana-proxy-ruby.git`
-2. Install dependencies with Bundler: `cd europeana-proxy-ruby && bundle`
+1. Clone the repository: `git clone https://github.com/europeana/media-proxy.git`
+2. Install dependencies with Bundler: `cd media-proxy && bundle`
 
 ## Configuration
 
