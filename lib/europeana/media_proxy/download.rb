@@ -7,9 +7,9 @@ require 'rack/proxy'
 require 'uri'
 
 module Europeana
-  module Proxy
+  module MediaProxy
     # Rack middleware to proxy Europeana record media resources
-    class Media < Rack::Proxy
+    class Download < Rack::Proxy
       # Default maximum number of redirects to follow.
       # Can be overriden in `opts` argument passed to +#initialize+.
       DEFAULT_MAX_REDIRECTS = 3
@@ -29,7 +29,7 @@ module Europeana
       #     and responding with plain text HTTP error responses, e.g. in dev env
       attr_accessor :raise_exception_classes
 
-      delegate :http_status, :logger, :response_for_status_code, to: Europeana::Proxy
+      delegate :http_status, :logger, :response_for_status_code, to: Europeana::MediaProxy
 
       # @param app Rack app
       # @param options [Hash] options

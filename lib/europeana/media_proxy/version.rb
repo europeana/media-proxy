@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 module Europeana
-  ##
-  # Europeana::Proxy version
-  module Proxy
+  # Europeana::MediaProxy version
+  module MediaProxy
     VERSION = '0.4.4'
   end
 end

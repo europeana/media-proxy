@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
 module Europeana
-  module Proxy
+  module MediaProxy
     # Rack app to respond to media proxy requests
     class App
       attr_accessor :permitted_api_urls
       attr_accessor :raise_exception_classes
       attr_accessor :streaming
 
-      delegate :response_for_status_code, to: Europeana::Proxy
+      delegate :response_for_status_code, to: Europeana::MediaProxy
 
       def self.build
         Rack::Builder.new do
-          app = Europeana::Proxy::App.new
+          app = Europeana::MediaProxy::App.new
 
-          use Rack::CommonLogger, Europeana::Proxy.logger
-          use Europeana::Proxy::Media,
+          use Rack::CommonLogger, Europeana::MediaProxy.logger
+          use Europeana::MediaProxy::Download,
               permitted_api_urls: app.permitted_api_urls,
               raise_exception_classes: app.raise_exception_classes,
               streaming: app.streaming
