@@ -9,10 +9,10 @@ Bundler.require(:default, ENV['RACK_ENV'])
 
 Dotenv.load if defined?(Dotenv)
 
-require 'europeana/proxy'
+require 'europeana/media_proxy'
 
 unless ENV.key?('EUROPEANA_API_KEY')
-  Europeana::Proxy.logger.fatal('EUROPEANA_API_KEY must be set in the environment')
+  Europeana::MediaProxy.logger.fatal('EUROPEANA_API_KEY must be set in the environment')
   exit 1
 end
 
@@ -21,6 +21,6 @@ Europeana::API.url = ENV['EUROPEANA_API_URL'] if ENV['EUROPEANA_API_URL']
 
 # NB: HttpLogger will only log full requests & responses if streaming is disabled
 # by env var DISABLE_STREAMING=1
-HttpLogger.logger = Europeana::Proxy.logger
+HttpLogger.logger = Europeana::MediaProxy.logger
 HttpLogger.log_headers = true
 HttpLogger.log_response_body = false

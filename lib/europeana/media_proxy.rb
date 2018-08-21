@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require 'europeana/proxy/version'
+require 'europeana/media_proxy/version'
 require 'logger'
 
 module Europeana
   # HTTP proxy for Europeana web resources
-  module Proxy
-    autoload :App, 'europeana/proxy/app'
-    autoload :Errors, 'europeana/proxy/errors'
-    autoload :Media, 'europeana/proxy/media'
+  module MediaProxy
+    autoload :App, 'europeana/media_proxy/app'
+    autoload :Errors, 'europeana/media_proxy/errors'
+    autoload :Proxy, 'europeana/media_proxy/proxy'
 
     class << self
       # @!attribute [r] logger
@@ -30,6 +30,6 @@ module Europeana
     end
 
     self.logger = Logger.new(STDOUT)
-    logger.progname = '[Europeana::Proxy]'
+    logger.progname = '[Europeana::MediaProxy]'
   end
 end

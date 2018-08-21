@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Europeana
-  module Proxy
+  module MediaProxy
     module Errors
       ##
       # URL to media resource is invalid, i.e. not a URL
@@ -31,7 +31,7 @@ module Europeana
       # Media type is invalid
       class UnknownMediaType < StandardError
         def message
-          "Unknown media type \"#{super}\""
+          %(Unknown media type "#{super}")
         end
       end
 
@@ -39,7 +39,7 @@ module Europeana
       # Access denied
       class AccessDenied < StandardError
         def message
-          "Access denied \"#{super}\""
+          %("Access denied "#{super}")
         end
       end
     end
