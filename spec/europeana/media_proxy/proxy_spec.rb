@@ -1,5 +1,6 @@
-# feature spec for the app
-describe Europeana::Proxy::Media do
+# frozen_string_literal: true
+
+describe Europeana::MediaProxy::Proxy do
   it 'capitalises header names'
 
   context 'when URL path is not a Europeana record ID' do

@@ -1,27 +1,18 @@
-# Europeana::Proxy::Media
+# Europeana Media Proxy
 
-[![Build Status](https://travis-ci.org/europeana/europeana-proxy-ruby.svg?branch=master)](https://travis-ci.org/europeana/europeana-proxy-ruby) [![Coverage Status](https://coveralls.io/repos/europeana/europeana-proxy-ruby/badge.svg?branch=master&service=github)](https://coveralls.io/github/europeana/europeana-proxy-ruby?branch=master) [![security](https://hakiri.io/github/europeana/europeana-proxy-ruby/master.svg)](https://hakiri.io/github/europeana/europeana-proxy-ruby/master)
+[![Build Status](https://travis-ci.org/europeana/media-proxy.svg?branch=develop)](https://travis-ci.org/europeana/media-proxy) [![security](https://hakiri.io/github/europeana/media-proxy/develop.svg)](https://hakiri.io/github/europeana/media-proxy/develop) [![Maintainability](https://api.codeclimate.com/v1/badges/51f4d29eff1a7ee2b93b/maintainability)](https://codeclimate.com/github/europeana/media-proxy/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/51f4d29eff1a7ee2b93b/test_coverage)](https://codeclimate.com/github/europeana/media-proxy/test_coverage)
 
-[Rack](http://rack.github.io/) proxy to download the media resources
-associated with Europeana records.
-
-## License
-
-Licensed under the EUPL V.1.1.
-
-For full details, see [LICENSE.md](LICENSE.md).
+[Rack](http://rack.github.io/) app and middleware to proxy the media objects
+(web resources) associated with [Europeana](https://www.europeana.eu/) records.
 
 ## Installation
 
-1. Download and extract the
-  [ZIP](https://github.com/europeana/europeana-proxy-ruby/archive/master.zip)
-2. Install dependencies with Bundler:
-
-    `bundle`
+1. Clone the repository: `git clone https://github.com/europeana/media-proxy.git`
+2. Install dependencies with Bundler: `cd media-proxy && bundle`
 
 ## Configuration
 
-1. Get a Europeana API key from http://labs.europeana.eu/api/
+1. Get a Europeana API key from https://pro.europeana.eu/get-api
 2. Set your API key in the environment variable `EUROPEANA_API_KEY`.
 3. (Optional) Set permitted CORS origins in the environment variable
   `CORS_ORIGINS`. Examples:
@@ -49,10 +40,13 @@ detect .env environment variables:
 
 ### Overview
 
-1. Proxy receives HTTP request with Europeana record ID as URL path
+1. Proxy receives HTTP request with Europeana record ID as URL path, with an
+  optional `view` parameter with the URI of a web resource
 2. Proxy requests record metadata from Europeana REST API
-3. Proxy gets edm:isShownBy URL from record metadata
-4. Proxy issues an HTTP request for edm:isShownBy URL
+3. Proxy gets edm:isShownBy URL from record metadata, unless `view` parameter
+  was specified
+4. Proxy issues an HTTP request for `view` parameter URL if specified,
+  otherwise edm:isShownBy URL
 5. Proxy follows redirects in response from remote provider
 6. If final target is HTML, user agent is redirected to it
 7. If final target is not HTML, proxy constructs a file name based on record ID
@@ -63,7 +57,7 @@ detect .env environment variables:
 ### Valid URL paths
 
 The only URL paths accepted by the proxy application are Europeana record IDs
-with a `view` parameter containing the URL of the required resource.
+with an optional `view` parameter containing the URL of the required resource.
 
 Optionally the `api_url` paramater may be supplied. If this is present, the aplication will query the specified API
 endpoint. Non permitted API urls will result in a 403 Forbidden response. By default the `Europeana::API.url` will
@@ -134,10 +128,8 @@ Europeana REST API returns an invalid response | 502
 Request to remote provider times out | 504
 Any other error preventing completion of the request | 500
 
-## TODO
+## License
 
-* Make the proxy:
-  * usable as Rack middleware, and document installation as a gem
-  * a Sinatra app
-* Document in this README:
-  * logger output
+Licensed under the EUPL V.1.1.
+
+For full details, see [LICENSE.md](LICENSE.md).
