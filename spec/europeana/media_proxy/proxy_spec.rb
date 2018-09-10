@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-# feature spec for the app
-describe Europeana::Proxy::Media do
+describe Europeana::MediaProxy::Proxy do
   let(:app) { Europeana::Proxy::App.new }
   let(:response) { get record_id }
   let(:record_id) { '/123/abc' }

@@ -6,7 +6,7 @@ require 'rack/test'
 require 'webmock/rspec'
 
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
-require 'europeana/proxy'
+require 'europeana/media_proxy'
 
 RSpec.configure do |config|
   config.include Rack::Test::Methods
