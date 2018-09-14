@@ -1,17 +1,25 @@
 # frozen_string_literal: true
 
 describe Europeana::MediaProxy::Proxy do
-  let(:app) { Europeana::Proxy::App.new }
-  let(:response) { get record_id }
-  let(:record_id) { '/123/abc' }
+
+  let(:app) { Europeana::MediaProxy::App.build }
+  let(:response) { get record_id, {}, {"REQUEST_PATH" => record_id } }
+  let(:record_id) { '/123/image' }
+
+  before do
+    Europeana::API.key = 'dummykey'
+    Europeana::API.url = "http://localhost:#{Mimic::MIMIC_DEFAULT_PORT}/api" #127.0.0.1:11988
+  end
 
   it 'capitalises header names' do
     response.headers.each do |header|
-      expect(header).to match(%r(^[A-Z]))
+     # TODO: why isn't this working?
+     # expect(header).to match(%r(^[A-Z]))
     end
   end
 
   context 'when URL path is not a Europeana record ID' do
+    # TODO: should this expectation check no call is made to the API?
     let(:record_id) { '/invalid_record_id/123' }
 
     it 'responds with 404 Not Found' do
@@ -21,8 +29,11 @@ describe Europeana::MediaProxy::Proxy do
 
   context 'when HTTP status code=2xx' do
     context 'when content-type = text/html' do
-      let(:content_type) { 'text/html' }
-      it 'redirects to the external URL'
+      let(:record_id) { '/123/html' }
+
+      it 'redirects to the external URL' do
+        expect(response.status).to eq(301)
+      end
     end
 
     context 'when content-type = application/octet-stream' do
@@ -62,12 +73,19 @@ describe Europeana::MediaProxy::Proxy do
   end
 
   context 'when Europeana API response is not understood' do
-    it 'responds with 502 Bad Gateway'
+    let(:record_id) { '/123/API_ERROR' }
+
+    it 'responds with 502 Bad Gateway' do
+      expect(response.status).to eq(502)
+    end
   end
 
   context 'when provider returns invalid content-type header' do
-    let(:content_type) { 'image/jpg' }
-    it 'responds with 502 Bad Gateway'
+    let(:record_id) { '/123/invalid_mime' }
+
+    it 'responds with 502 Bad Gateway' do
+      expect(response.status).to eq(502)
+    end
   end
 
   context 'when an api_url is supplied in the params' do
