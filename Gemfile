@@ -24,7 +24,7 @@ group :development do
 end
 
 group :test do
+  gem 'mimic'
   gem 'rack-test'
   gem 'simplecov', require: false
-  gem 'mimic'
 end
