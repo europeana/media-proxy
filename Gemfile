@@ -24,5 +24,7 @@ group :development do
 end
 
 group :test do
+  gem 'rack-test'
+  gem 'roda'
   gem 'simplecov', require: false
 end

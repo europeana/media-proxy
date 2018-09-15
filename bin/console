@@ -3,7 +3,7 @@
 
 require File.expand_path('../config/boot', __dir__)
 
-require 'europeana/proxy/app'
+require 'europeana/media_proxy/app'
 require 'irb'
 
 IRB.start
