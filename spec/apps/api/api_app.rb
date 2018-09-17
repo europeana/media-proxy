@@ -9,7 +9,7 @@ class APIApp < Roda
     r.on 'api' do
       r.on 'v2' do
         r.get 'search.json' do
-          europeana_id = request.params['query'].match(%r{europeana_id:"(.*)"})[1]
+          europeana_id = request.params['query'].match(/europeana_id:"(.*)"/)[1]
 
           {
             success: true,
