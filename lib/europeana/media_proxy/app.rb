@@ -15,21 +15,22 @@ module Europeana
           app = Europeana::MediaProxy::App.new
 
           use Rack::CommonLogger, Europeana::MediaProxy.logger
-          use Europeana::MediaProxy::Proxy,
-              permitted_api_urls: app.permitted_api_urls,
-              raise_exception_classes: app.raise_exception_classes,
-              streaming: app.streaming
 
           if ENV['CORS_ORIGINS']
             require 'rack/cors'
             use Rack::Cors do
               allow do
                 origins ENV['CORS_ORIGINS'].split(' ')
-                resource '/*', headers: :any, methods: %i(get head options),
+                resource '*', headers: :any, methods: %i(get head options),
                                expose: ['Content-Length']
               end
             end
           end
+
+          use Europeana::MediaProxy::Proxy,
+              permitted_api_urls: app.permitted_api_urls,
+              raise_exception_classes: app.raise_exception_classes,
+              streaming: app.streaming
 
           run app
         end
