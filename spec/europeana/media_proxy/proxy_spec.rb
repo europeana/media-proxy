@@ -3,8 +3,20 @@
 describe Europeana::MediaProxy::Proxy do
   it 'capitalises header names'
 
+  before do
+    Europeana::API.key = 'dummykey'
+    Europeana::API.url = 'http://localhost:9292/api'
+  end
+
+  let(:app) { Europeana::MediaProxy::App.build }
+  let(:response) { get record_id, {}, {"REQUEST_PATH" => record_id } }
+
   context 'when URL path is not a Europeana record ID' do
-    it 'responds with 404 Not Found'
+    let(:record_id) { '/invalid_record_id/123' }
+
+    it 'responds with 404 Not Found' do
+      expect(response.status).to eq(404)
+    end
   end
 
   context 'when HTTP status code=2xx' do
@@ -54,8 +66,11 @@ describe Europeana::MediaProxy::Proxy do
   end
 
   context 'when provider returns invalid content-type header' do
-    let(:content_type) { 'image/jpg' }
-    it 'responds with 502 Bad Gateway'
+    let(:record_id) { '/123/invalid_mime' }
+
+    it 'responds with 502 Bad Gateway' do
+      expect(response.status).to eq(502)
+    end
   end
 
   context 'when an api_url is supplied in the params' do

@@ -8,3 +8,5 @@
 /tmp/
 /.env
 /manifest.yml
+*.pid
+*.log
