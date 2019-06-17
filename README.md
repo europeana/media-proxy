@@ -128,6 +128,38 @@ Europeana REST API returns an invalid response | 502
 Request to remote provider times out | 504
 Any other error preventing completion of the request | 500
 
+## Docker
+
+A Dockerfile is included, optimised for small image size, for publication to
+a Docker repository.
+
+### Configure version
+
+```shell
+export VERSION=0.6.1
+```
+
+### Build
+
+```shell
+docker build -t europeana/media-proxy:${VERSION} .
+```
+
+### Run
+
+```shell
+export EUROPEANA_API_KEY=your_api_key
+docker run \
+       -p 8080:80 \
+       -e EUROPEANA_API_KEY=${EUROPEANA_API_KEY} \
+       europeana/media-proxy:${VERSION}
+```
+
+### Publish
+```shell
+docker push europeana/media-proxy:${VERSION}
+```
+
 ## License
 
 Licensed under the EUPL v1.2.
