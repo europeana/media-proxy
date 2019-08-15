@@ -4,10 +4,10 @@ module Europeana
   module MediaProxy
     class Proxy
       module Error
-        # @!attribute [rw] raise_exception_classes
-        #   @return [Array<Class>] Exception classes to raise instead of logging
-        #     and responding with plain text HTTP error responses, e.g. in dev env
-        attr_accessor :raise_exception_classes
+        # @!attribute [rw] raise_exceptions
+        #   @return [Boolean] Raise exceptions instead of logging and responding
+        #     with plain text HTTP error responses
+        attr_accessor :raise_exceptions
 
         protected
 
@@ -15,8 +15,8 @@ module Europeana
           yield
         rescue StandardError => exception
           # Log all errors, then handle them individually below
-          logger.error(exception.message)
-          raise if raise_exception_classes.include?(exception.class)
+          logger.error(exception.class.to_s + ': ' + exception.message)
+          raise if raise_exceptions
           if debug_profile?(env)
             debug_response_for_exception(exception)
           else
