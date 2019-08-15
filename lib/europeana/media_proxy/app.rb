@@ -5,7 +5,7 @@ module Europeana
     # Rack app to respond to media proxy requests
     class App
       attr_accessor :permitted_api_urls
-      attr_accessor :raise_exception_classes
+      attr_accessor :raise_exceptions
       attr_accessor :streaming
 
       delegate :response_for_status_code, to: Europeana::MediaProxy
@@ -29,7 +29,7 @@ module Europeana
 
           use Europeana::MediaProxy::Proxy,
               permitted_api_urls: app.permitted_api_urls,
-              raise_exception_classes: app.raise_exception_classes,
+              raise_exceptions: app.raise_exceptions,
               streaming: app.streaming
 
           run app
@@ -43,11 +43,7 @@ module Europeana
                                     []
                                   end
 
-        self.raise_exception_classes = if %w(develop test).include?(ENV['RACK_ENV'])
-                                         []
-                                       else
-                                         [ArgumentError, StandardError]
-                                       end
+        self.raise_exceptions = (ENV['RAISE_EXCEPTIONS'] == '1')
 
         self.streaming = (ENV['DISABLE_STREAMING'] != '1')
       end
