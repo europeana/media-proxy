@@ -36,16 +36,15 @@ module Europeana
       #   follow, defaults to +DEFAULT_MAX_REDIRECTS+
       # @options options [Array<String>] :permitted_api_urls API URLs to permit
       #   in +api_url+ parameter, to which +Europeana::API.url+ is always added
-      # @options options [Array<Class>] :raise_exception_classes Exception classes
-      #   to raise instead of logging and responding with plain text HTTP error
-      #   responses, e.g. in dev env
+      # @options options [Boolean] :raise_exceptions Raise exceptions instead of
+      #   logging and responding with plain text HTTP error responses
       def initialize(app, options = {})
         opts = options.dup
         self.max_redirects = opts.delete(:max_redirects) || DEFAULT_MAX_REDIRECTS
         self.permitted_api_urls = opts.delete(:permitted_api_urls) || []
         permitted_api_urls << Europeana::API.url
         permitted_api_urls.uniq!
-        self.raise_exception_classes = opts.delete(:raise_exception_classes) || []
+        self.raise_exceptions = opts.delete(:raise_exceptions) || false
 
         opts[:streaming] ||= true
 

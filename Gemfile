@@ -3,6 +3,7 @@
 source 'https://rubygems.org'
 
 gem 'activesupport'
+gem 'addressable'
 gem 'europeana-api'
 gem 'http_logger'
 gem 'mime-types'
