@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'addressable'
+
 module Europeana
   module MediaProxy
     class Proxy
@@ -38,14 +40,17 @@ module Europeana
         def rewrite_env_for_url(env, url)
           logger.info "URL: #{url}"
 
+          # Normalize the incoming URL to handle non-percent-escaped characters
+          normalized_url = Addressable::URI.parse(url).normalize.to_s
+
           # Keep a stack of URLs requested
-          env['app.urls'] << url
+          env['app.urls'] << normalized_url
 
           # app server may already be proxied; don't let Rack know
           env.reject! { |k, _v| k.match(/^HTTP_X_/) } if env['app.urls'].size == 1
 
-          uri = URI.parse(url)
-          fail Errors::BadUrl, url unless uri.host.present?
+          uri = URI.parse(normalized_url)
+          fail Errors::BadUrl, normalized_url unless uri.host.present?
 
           rewrite_env_for_uri(env, uri)
         end

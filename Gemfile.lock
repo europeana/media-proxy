@@ -13,6 +13,8 @@ GEM
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
+    addressable (2.6.0)
+      public_suffix (>= 2.0.2, < 4.0)
     ast (2.4.0)
     concurrent-ruby (1.0.5)
     daemons (1.2.6)
@@ -52,6 +54,7 @@ GEM
     parser (2.5.1.2)
       ast (~> 2.4.0)
     powerpack (0.1.2)
+    public_suffix (3.1.1)
     puma (3.12.0)
     rack (2.0.7)
     rack-proxy (0.6.4)
@@ -102,6 +105,7 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport
+  addressable
   daemons
   dotenv
   europeana-api
@@ -118,3 +122,6 @@ DEPENDENCIES
   rspec
   rubocop (~> 0.53)
   simplecov
+
+BUNDLED WITH
+   2.0.1
