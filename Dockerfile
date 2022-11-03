@@ -1,34 +1,39 @@
-FROM ruby:2.5.5-alpine
+FROM ruby:2.5.5-alpine AS base
 
 MAINTAINER Europeana Foundation <development@europeana.eu>
 
-ENV BUNDLE_WITHOUT development:test
-ENV RACK_ENV production
-ENV PORT 80
+ENV RACK_ENV=production \
+    BUNDLER_VERSION=2.1.4 \
+    PORT=8080 \
+    WEB_CONCURRENCY=1 \
+    ELASTIC_APM_SERVICE_NAME=media-proxy \
+    ELASTIC_APM_ENVIRONMENT=development
 
 WORKDIR /app
 
+RUN apk add --update \
+  libcurl
+
+RUN gem install bundler -v ${BUNDLER_VERSION}
+
+
+FROM base as dependencies
+
+RUN apk add --update \
+  build-base
+
 COPY Gemfile Gemfile.lock ./
 
-# Install dependencies
-RUN apk update && \
-    apk add --no-cache --virtual .build-deps \
-      build-base \
-      git && \
-    apk add --no-cache --virtual .runtime-deps \
-      libcurl && \
-    echo "gem: --no-document" >> /etc/gemrc && \
-    bundle install --deployment --without ${BUNDLE_WITHOUT} --jobs=4 --retry=4 && \
-    rm -rf vendor/bundle/ruby/2.5.0/bundler/gems/*/.git && \
-    rm -rf vendor/bundle/ruby/2.5.0/cache && \
-    rm -rf /root/.bundle && \
-    apk del .build-deps && \
-    rm -rf /var/cache/apk/*
+RUN bundle config set without "development test" && \
+    bundle install --jobs=3 --retry=3
 
-# Copy code
-COPY . .
 
-EXPOSE 80
+FROM base
 
 ENTRYPOINT ["bundle", "exec", "puma"]
 CMD ["-C", "config/puma.rb", "-v"]
+EXPOSE ${PORT}
+
+COPY --from=dependencies /usr/local/bundle/ /usr/local/bundle/
+
+COPY . ./

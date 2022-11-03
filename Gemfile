@@ -4,13 +4,13 @@ source 'https://rubygems.org'
 
 gem 'activesupport'
 gem 'addressable'
+gem 'elastic-apm'
 gem 'europeana-api'
 gem 'http_logger'
 gem 'mime-types'
 gem 'puma'
 gem 'rack'
-# Pending release > 1.0.2
-gem 'rack-cors', git: 'https://github.com/cyu/rack-cors.git', ref: '51f5c534d968d8ed89ae25f4aa4e93d16cc115f1'
+gem 'rack-cors', '~> 1.0.3'
 gem 'rack-proxy'
 gem 'rake'
 
