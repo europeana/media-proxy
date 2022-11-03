@@ -11,7 +11,7 @@ ENV RACK_ENV=production \
 
 ENTRYPOINT ["bundle", "exec", "puma"]
 CMD ["-C", "config/puma.rb", "-v"]
-EXPOSE 8080
+EXPOSE ${PORT}
 
 WORKDIR /app
 
