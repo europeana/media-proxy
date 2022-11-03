@@ -9,6 +9,7 @@ module Europeana
     autoload :App, 'europeana/media_proxy/app'
     autoload :Errors, 'europeana/media_proxy/errors'
     autoload :Proxy, 'europeana/media_proxy/proxy'
+    autoload :RobotsTxt, 'europeana/media_proxy/robots_txt'
 
     class << self
       # @!attribute [r] logger

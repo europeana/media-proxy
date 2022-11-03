@@ -15,6 +15,10 @@ module Europeana
           app = Europeana::MediaProxy::App.new
 
           use Rack::CommonLogger, Europeana::MediaProxy.logger
+          use ElasticAPM::Middleware
+          use Europeana::MediaProxy::RobotsTxt
+
+          ElasticAPM.start
 
           if ENV['CORS_ORIGINS']
             require 'rack/cors'
@@ -33,6 +37,8 @@ module Europeana
               streaming: app.streaming
 
           run app
+
+          at_exit { ElasticAPM.stop }
         end
       end
 
