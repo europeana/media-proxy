@@ -9,10 +9,6 @@ ENV RACK_ENV=production \
     ELASTIC_APM_SERVICE_NAME=media-proxy \
     ELASTIC_APM_ENVIRONMENT=development
 
-ENTRYPOINT ["bundle", "exec", "puma"]
-CMD ["-C", "config/puma.rb", "-v"]
-EXPOSE ${PORT}
-
 WORKDIR /app
 
 RUN apk add --update \
@@ -31,7 +27,12 @@ COPY Gemfile Gemfile.lock ./
 RUN bundle config set without "development test" && \
     bundle install --jobs=3 --retry=3
 
+
 FROM base
+
+ENTRYPOINT ["bundle", "exec", "puma"]
+CMD ["-C", "config/puma.rb", "-v"]
+EXPOSE ${PORT}
 
 COPY --from=dependencies /usr/local/bundle/ /usr/local/bundle/
 
