@@ -16,12 +16,24 @@ module Europeana
         rescue StandardError => exception
           # Log all errors, then handle them individually below
           logger.error(exception.class.to_s + ': ' + exception.message)
+
           raise if raise_exceptions
-          if debug_profile?(env)
+
+          error_response = if debug_profile?(env)
             debug_response_for_exception(exception)
           else
             error_response_for_exception(exception)
           end
+
+          error_response_with_header(error_response, exception)
+        end
+
+        def error_response_with_header(error_response, exception)
+          [
+            error_response[0],
+            error_response[1].merge({ 'x-europeana-media-proxy-error' => exception }),
+            error_response[2]
+          ]
         end
 
         def error_response_for_exception(exception)
