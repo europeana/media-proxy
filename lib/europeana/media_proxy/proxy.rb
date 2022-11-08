@@ -47,6 +47,7 @@ module Europeana
         self.raise_exceptions = opts.delete(:raise_exceptions) || false
 
         opts[:streaming] ||= true
+        opts[:read_timeout] ||= 30
 
         super(opts)
         @app = app

@@ -39,7 +39,8 @@ module Europeana
           when Europeana::API::Errors::ResourceNotFoundError, Errors::UnknownView
             404
           when Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
-               Errors::TooManyRedirects, Errno::ENETUNREACH, Errno::EHOSTUNREACH
+               Errors::TooManyRedirects, Errno::ENETUNREACH, Errno::EHOSTUNREACH,
+               Net::ReadTimeout
             502 # Bad Gateway
           when Errno::ETIMEDOUT
             504 # Gateway Timeout
