@@ -40,7 +40,7 @@ module Europeana
             404
           when Europeana::API::Errors::ResponseError, Errors::UnknownMediaType,
                Errors::TooManyRedirects, Errno::ENETUNREACH, Errno::EHOSTUNREACH,
-               Net::ReadTimeout
+               Net::ReadTimeout, OpenSSL::SSL::SSLError
             502 # Bad Gateway
           when Errno::ETIMEDOUT
             504 # Gateway Timeout
